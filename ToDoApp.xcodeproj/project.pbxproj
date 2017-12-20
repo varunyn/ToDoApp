@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		012BB7C31FEAC5D80071D17C /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012BB7C21FEAC5D80071D17C /* Item.swift */; };
 		01EC344B1FE97E570093AAD5 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01EC344A1FE97E570093AAD5 /* AppDelegate.swift */; };
 		01EC344D1FE97E570093AAD5 /* ToDoListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01EC344C1FE97E570093AAD5 /* ToDoListViewController.swift */; };
 		01EC34501FE97E570093AAD5 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 01EC344E1FE97E570093AAD5 /* Main.storyboard */; };
@@ -15,6 +16,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		012BB7C21FEAC5D80071D17C /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		01EC34471FE97E570093AAD5 /* ToDoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ToDoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		01EC344A1FE97E570093AAD5 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		01EC344C1FE97E570093AAD5 /* ToDoListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToDoListViewController.swift; sourceTree = "<group>"; };
@@ -35,6 +37,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		012BB7C41FEAC5DB0071D17C /* DataModel */ = {
+			isa = PBXGroup;
+			children = (
+				012BB7C21FEAC5D80071D17C /* Item.swift */,
+			);
+			path = DataModel;
+			sourceTree = "<group>";
+		};
 		01EC343E1FE97E570093AAD5 = {
 			isa = PBXGroup;
 			children = (
@@ -56,6 +66,7 @@
 			children = (
 				01EC344A1FE97E570093AAD5 /* AppDelegate.swift */,
 				01EC344C1FE97E570093AAD5 /* ToDoListViewController.swift */,
+				012BB7C41FEAC5DB0071D17C /* DataModel */,
 				01EC344E1FE97E570093AAD5 /* Main.storyboard */,
 				01EC34511FE97E570093AAD5 /* Assets.xcassets */,
 				01EC34531FE97E570093AAD5 /* LaunchScreen.storyboard */,
@@ -137,6 +148,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				01EC344D1FE97E570093AAD5 /* ToDoListViewController.swift in Sources */,
+				012BB7C31FEAC5D80071D17C /* Item.swift in Sources */,
 				01EC344B1FE97E570093AAD5 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
