@@ -11,7 +11,10 @@ import RealmSwift
 
 class CategoryViewController: UIViewController,UICollectionViewDelegate, UICollectionViewDataSource {
    
+    
     let realm = try! Realm()
+    
+    private var currentCellIndex : IndexPath!
 
     var categories: Results<Category>?
     @IBOutlet weak var CatergoryCollection: UICollectionView!
@@ -31,26 +34,23 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
     
     @IBAction func addCategoryButton(_ sender: Any) {
         
-        var textField = UITextField()
-        
         let alert = UIAlertController(title: "Add new category",message : "",preferredStyle: .alert)
         
-        let action = UIAlertAction(title: "Add",style: .default) { (action)  in
-            
-            let newCategory = Category()
-            newCategory.name = textField.text!
-            
-            //            self.categories.append(newCategory)
-            self.save(category: newCategory)
-            
-        }
-        alert.addAction(action)
-        alert.addTextField { (field) in
-            
-            textField = field
-            textField.placeholder = "Add new category"
+        let cancel = UIAlertAction(title: "Cancel",style: .cancel) { (action) in
         }
         
+        alert.addTextField { (field) in
+            field.placeholder = "Add new category"
+        }
+        
+        let action = UIAlertAction(title: "Add",style: .default) { (action)  in
+            let newCategory = Category()
+            newCategory.name  = alert.textFields![0].text!
+            self.save(category: newCategory)
+        }
+        alert.addAction(action)
+        
+        alert.addAction(cancel)
         present(alert, animated: true, completion: nil)
         
     }
@@ -134,20 +134,16 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
         
         if categories?.count != 0 {
         cell.tasksCountLabel?.text = String(describing: categories![indexPath.row].items.count) + " " + "tasks"
+
         }
         
         return cell
     }
     
-    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        
-        let cell = CollectionViewCell()
-        
-        cell.tasksCountLabel?.text = String(initialTotalTasks)
-        
-    }
+
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        currentCellIndex = indexPath
         let viewController = storyboard?.instantiateViewController(withIdentifier: "Identifier") as! ItemViewController
         viewController.selectedCategory = categories?[indexPath.row]
         viewController.delegate = self
@@ -162,16 +158,22 @@ extension CategoryViewController : UpdateCompletedTasksNumber {
         initialTotalTasks = TotalCount
         
         print(initialTotalTasks)
+        
+        if let cell = CatergoryCollection.cellForItem(at: currentCellIndex) as? CollectionViewCell {
+            cell.tasksCountLabel.text = String(initialTotalTasks) + " " + "tasks"
+        }
+        
         completedTaskLabel.text = String(initialCompletedTasks)
-   
         
         
+        
+        
+//        let cell = CollectionViewCell()
+//        cell.tasksCountLabel.text = String(initialTotalTasks)
     }
 }
 
-
 protocol UpdateCompletedTasksNumber : class {
-    
     func updateValue(count:Int, TotalCount: Int) -> ()
 }
 

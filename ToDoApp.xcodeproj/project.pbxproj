@@ -7,14 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0183B57C2011400300A3A2BF /* TwicketSegmentedControl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0183B57D2011400300A3A2BF /* TwicketSegmentedControl.framework */; };
+		0186592C20113E8D0023E885 /* SegmentioSubClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0186592B20113E8D0023E885 /* SegmentioSubClass.swift */; };
 		01CCC88C200E7F840037B778 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CCC88B200E7F840037B778 /* Item.swift */; };
 		01CCC88E200E80050037B778 /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CCC88D200E80050037B778 /* Category.swift */; };
 		01CCC890200E82220037B778 /* CategoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CCC88F200E82220037B778 /* CategoryViewController.swift */; };
 		01CCC892200E99D40037B778 /* CollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CCC891200E99D40037B778 /* CollectionViewCell.swift */; };
 		01CCC894200FB0E10037B778 /* ItemViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CCC893200FB0E10037B778 /* ItemViewController.swift */; };
 		01CCC896200FCD170037B778 /* CustomTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CCC895200FCD170037B778 /* CustomTableViewCell.swift */; };
+		01CECD5C2011439000496EA5 /* CustomSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CECD5B2011439000496EA5 /* CustomSegmentedControl.swift */; };
+		01CECD5E2011459B00496EA5 /* AddTaskViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CECD5D2011459B00496EA5 /* AddTaskViewController.swift */; };
 		01EC344B1FE97E570093AAD5 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01EC344A1FE97E570093AAD5 /* AppDelegate.swift */; };
-		01EC344D1FE97E570093AAD5 /* ToDoListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01EC344C1FE97E570093AAD5 /* ToDoListViewController.swift */; };
 		01EC34501FE97E570093AAD5 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 01EC344E1FE97E570093AAD5 /* Main.storyboard */; };
 		01EC34521FE97E570093AAD5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 01EC34511FE97E570093AAD5 /* Assets.xcassets */; };
 		01EC34551FE97E570093AAD5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 01EC34531FE97E570093AAD5 /* LaunchScreen.storyboard */; };
@@ -22,15 +25,18 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0183B57D2011400300A3A2BF /* TwicketSegmentedControl.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TwicketSegmentedControl.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		0186592B20113E8D0023E885 /* SegmentioSubClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentioSubClass.swift; sourceTree = "<group>"; };
 		01CCC88B200E7F840037B778 /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		01CCC88D200E80050037B778 /* Category.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Category.swift; sourceTree = "<group>"; };
 		01CCC88F200E82220037B778 /* CategoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryViewController.swift; sourceTree = "<group>"; };
 		01CCC891200E99D40037B778 /* CollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewCell.swift; sourceTree = "<group>"; };
 		01CCC893200FB0E10037B778 /* ItemViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemViewController.swift; sourceTree = "<group>"; };
 		01CCC895200FCD170037B778 /* CustomTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTableViewCell.swift; sourceTree = "<group>"; };
+		01CECD5B2011439000496EA5 /* CustomSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomSegmentedControl.swift; sourceTree = "<group>"; };
+		01CECD5D2011459B00496EA5 /* AddTaskViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTaskViewController.swift; sourceTree = "<group>"; };
 		01EC34471FE97E570093AAD5 /* ToDoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ToDoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		01EC344A1FE97E570093AAD5 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		01EC344C1FE97E570093AAD5 /* ToDoListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToDoListViewController.swift; sourceTree = "<group>"; };
 		01EC344F1FE97E570093AAD5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		01EC34511FE97E570093AAD5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		01EC34541FE97E570093AAD5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -45,6 +51,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0183B57C2011400300A3A2BF /* TwicketSegmentedControl.framework in Frameworks */,
 				CAAAFB5331AD027C0F3898B4 /* Pods_ToDoApp.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -64,9 +71,9 @@
 		017C75231FF40D7E00CDC72F /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
-				01EC344C1FE97E570093AAD5 /* ToDoListViewController.swift */,
 				01CCC88F200E82220037B778 /* CategoryViewController.swift */,
 				01CCC893200FB0E10037B778 /* ItemViewController.swift */,
+				01CECD5D2011459B00496EA5 /* AddTaskViewController.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -96,6 +103,8 @@
 				017C75231FF40D7E00CDC72F /* Controllers */,
 				012BB7C41FEAC5DB0071D17C /* DataModel */,
 				01EC344E1FE97E570093AAD5 /* Main.storyboard */,
+				01CECD5B2011439000496EA5 /* CustomSegmentedControl.swift */,
+				0186592B20113E8D0023E885 /* SegmentioSubClass.swift */,
 				01CCC895200FCD170037B778 /* CustomTableViewCell.swift */,
 				01CCC891200E99D40037B778 /* CollectionViewCell.swift */,
 				01EC34511FE97E570093AAD5 /* Assets.xcassets */,
@@ -108,6 +117,7 @@
 		359F79DAF3A50F83D7FA3A6F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				0183B57D2011400300A3A2BF /* TwicketSegmentedControl.framework */,
 				1970A5CD137DABE02713824C /* Pods_ToDoApp.framework */,
 			);
 			name = Frameworks;
@@ -248,9 +258,11 @@
 				01CCC894200FB0E10037B778 /* ItemViewController.swift in Sources */,
 				01CCC890200E82220037B778 /* CategoryViewController.swift in Sources */,
 				01CCC896200FCD170037B778 /* CustomTableViewCell.swift in Sources */,
+				01CECD5C2011439000496EA5 /* CustomSegmentedControl.swift in Sources */,
 				01CCC88C200E7F840037B778 /* Item.swift in Sources */,
 				01CCC892200E99D40037B778 /* CollectionViewCell.swift in Sources */,
-				01EC344D1FE97E570093AAD5 /* ToDoListViewController.swift in Sources */,
+				01CECD5E2011459B00496EA5 /* AddTaskViewController.swift in Sources */,
+				0186592C20113E8D0023E885 /* SegmentioSubClass.swift in Sources */,
 				01EC344B1FE97E570093AAD5 /* AppDelegate.swift in Sources */,
 				01CCC88E200E80050037B778 /* Category.swift in Sources */,
 			);
