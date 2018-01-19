@@ -278,30 +278,32 @@
                                 <rect key="frame" x="0.0" y="35" width="375" height="568"/>
                                 <color key="backgroundColor" red="0.96078431369999995" green="0.96470588239999999" blue="0.98431372549999996" alpha="1" colorSpace="calibratedRGB"/>
                                 <prototypes>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="ToDoItemCell" id="E56-Db-ePw" customClass="CustomTableViewCell" customModule="ToDoApp" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="28" width="375" height="44"/>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="ToDoItemCell" rowHeight="50" id="E56-Db-ePw" customClass="CustomTableViewCell" customModule="ToDoApp" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="28" width="375" height="50"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="E56-Db-ePw" id="5Ck-dX-GXn">
-                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="49.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <button opaque="NO" contentMode="scaleAspectFit" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mUE-vv-Tel">
-                                                    <rect key="frame" x="15" y="6" width="30" height="30"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                    <state key="normal" title="Button"/>
+                                                <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mUE-vv-Tel">
+                                                    <rect key="frame" x="15" y="6" width="30" height="34"/>
                                                 </button>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Task" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jg6-Ul-3sU">
-                                                    <rect key="frame" x="53" y="4" width="257" height="35"/>
-                                                    <fontDescription key="fontDescription" name="HelveticaNeue-Medium" family="Helvetica Neue" pointSize="20"/>
+                                                    <rect key="frame" x="53" y="4" width="257" height="41"/>
+                                                    <fontDescription key="fontDescription" name="HelveticaNeue-Medium" family="Helvetica Neue" pointSize="22"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
                                             <constraints>
                                                 <constraint firstAttribute="bottom" secondItem="jg6-Ul-3sU" secondAttribute="bottom" constant="4.5" id="4Nh-Dr-7jh"/>
+                                                <constraint firstAttribute="bottom" secondItem="mUE-vv-Tel" secondAttribute="bottom" constant="9.5" id="4rH-Vj-ZbC"/>
                                                 <constraint firstItem="jg6-Ul-3sU" firstAttribute="leading" secondItem="5Ck-dX-GXn" secondAttribute="leading" constant="53" id="8HY-l4-lDh"/>
+                                                <constraint firstAttribute="trailing" secondItem="mUE-vv-Tel" secondAttribute="trailing" constant="330" id="HtI-0h-OtD"/>
+                                                <constraint firstItem="mUE-vv-Tel" firstAttribute="leading" secondItem="5Ck-dX-GXn" secondAttribute="leading" constant="15" id="M2v-27-6Wy"/>
                                                 <constraint firstItem="jg6-Ul-3sU" firstAttribute="top" secondItem="5Ck-dX-GXn" secondAttribute="top" constant="4" id="Stx-qG-ErJ"/>
                                                 <constraint firstAttribute="trailing" secondItem="jg6-Ul-3sU" secondAttribute="trailing" constant="65" id="qg9-Gf-QTo"/>
+                                                <constraint firstItem="mUE-vv-Tel" firstAttribute="top" secondItem="5Ck-dX-GXn" secondAttribute="top" constant="6" id="rF7-qj-LJM"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                         <color key="backgroundColor" red="0.96078431369999995" green="0.96470588239999999" blue="0.98431372549999996" alpha="1" colorSpace="calibratedRGB"/>
@@ -359,6 +361,7 @@
                         <outlet property="addButton" destination="B2u-Bb-ft4" id="XR9-4A-LFM"/>
                         <outlet property="segmentControl" destination="I1G-ag-THN" id="Fuy-hQ-yf7"/>
                         <outlet property="tableView" destination="7HL-lx-6ta" id="Tiy-1B-NT8"/>
+                        <segue destination="cDy-M3-h9t" kind="show" identifier="2" id="Nwh-rf-DuL"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="ndu-dK-kAO" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -370,11 +373,11 @@
             <objects>
                 <viewController storyboardIdentifier="AddTask" useStoryboardIdentifierAsRestorationIdentifier="YES" id="cDy-M3-h9t" customClass="AddTaskViewController" customModule="ToDoApp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="x6i-pc-re1">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="603"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Add new task here" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="yZ7-xk-Lw5">
-                                <rect key="frame" x="37" y="252" width="301" height="30"/>
+                                <rect key="frame" x="37" y="226" width="301" height="30"/>
                                 <nil key="textColor"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits"/>
@@ -406,7 +409,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="sxM-Ko-aCn" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3636" y="442"/>
+            <point key="canvasLocation" x="3554" y="-255"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="rSi-zT-fn5">
@@ -426,24 +429,6 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="m3W-de-yv1" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1340" y="-255"/>
-        </scene>
-        <!--Navigation Controller-->
-        <scene sceneID="zNf-oX-xxu">
-            <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="TBj-vQ-XDQ" sceneMemberID="viewController">
-                    <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="mrL-6P-kyh">
-                        <rect key="frame" x="0.0" y="20" width="375" height="44"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <nil name="viewControllers"/>
-                    <connections>
-                        <segue destination="cDy-M3-h9t" kind="relationship" relationship="rootViewController" id="f8w-NB-0CB"/>
-                    </connections>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="yJV-Bn-qTV" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="2838" y="443"/>
         </scene>
     </scenes>
 </document>

@@ -13,4 +13,6 @@ class Category: Object {
     @objc dynamic var name: String = ""
     let items = List<Item>()
     let array = Array<Int>()
+    
+    @objc dynamic var order = 0 
 }

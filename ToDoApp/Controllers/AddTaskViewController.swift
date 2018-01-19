@@ -11,7 +11,6 @@ import RealmSwift
 
 class AddTaskViewController: UIViewController{
     
-    
     var currentCategory: Category?
     
     let realm = try! Realm()
@@ -21,18 +20,25 @@ class AddTaskViewController: UIViewController{
     
     @IBAction func addTaskPressed(_ sender: Any) {
         if let currentCategory = self.currentCategory {
-            do {
-                try self.realm.write {
-                    let newItem = Item()
-                    newItem.title = textField.text!
-                    currentCategory.items.append(newItem)
+            if textField.text != "" {
+                do {
+                    try self.realm.write {
+                        let newItem = Item()
+                        
+                        newItem.title = textField.text!
+                        
+                        currentCategory.items.append(newItem)
+                        
+                        self.navigationController?.popViewController(animated: true)
+                    }
                     
-                    self.navigationController?.popViewController(animated: true)
-                    
+                } catch {
+                    print("Error saving new items, \(error)")
                 }
-            } catch {
-                print("Error saving new items, \(error)")
+            }  else {
+                print("Add something")
             }
+            
         }
     }
     
