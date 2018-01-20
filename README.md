@@ -16,6 +16,11 @@ This is basic ToDo app which allows user to add categories and tasks inside cate
 2. Button to represent the state of completness of the task.
 3. StrikeOut the task if its completed.
 
+## Video walkthrough
+
+<a href="1"><img src="https://media.giphy.com/media/3o751YP6fud33YuZ5C/giphy.gif" title="Main Page"/>
+
+
 ##  Core library used
 
 1. Realm
