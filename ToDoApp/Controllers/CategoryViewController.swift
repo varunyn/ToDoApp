@@ -10,19 +10,17 @@ import UIKit
 import RealmSwift
 import SCLAlertView
 
-class CategoryViewController: UIViewController,UICollectionViewDelegate, UICollectionViewDataSource {
+class CategoryViewController: UIViewController,UICollectionViewDelegate, UICollectionViewDataSource,UICollectionViewDelegateFlowLayout {
    
     let realm = try! Realm()
     
     private var currentCellIndex : IndexPath!
     
-    var footer : UICollectionReusableView!
-    
-
+    var footer : UIView!
+    var deleteButton: UIButton!
     
     private var selectImages = [Int : UIImageView] ()
     private var tapGesture : UITapGestureRecognizer!
-    
     
     var categories: Results<Category>?
     @IBOutlet weak var CatergoryCollection: UICollectionView!
@@ -36,28 +34,6 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
     @IBOutlet weak var completedTaskLabel: UILabel!
     
     @IBAction func userNameEditButtonPressed(_ sender: Any) {
-//        let alert = UIAlertController(title: "Info",message : "",preferredStyle: .alert)
-//
-//        let cancel = UIAlertAction(title: "Cancel",style: .cancel) { (action) in
-//        }
-//
-//        alert.addTextField { (field) in
-//            field.placeholder = "Insert Name"
-//        }
-//
-//        let action = UIAlertAction(title: "Done",style: .default) { (action)  in
-//            let userName: String
-//            userName  = alert.textFields![0].text!
-//            UserDefaults.standard.removeObject(forKey: "Key")
-//            UserDefaults.standard.set(userName, forKey: "Key")
-//            self.userNameLabel.text =  UserDefaults.standard.string(forKey: "Key")
-//        }
-//        alert.addAction(action)
-//
-//        alert.addAction(cancel)
-//        present(alert, animated: true, completion: nil)
-//
-        
         let alertView = SCLAlertView()
         
         let txt = alertView.addTextField("Enter your name")
@@ -66,7 +42,6 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
             UserDefaults.standard.set(txt.text, forKey: "Key")
             self.userNameLabel.text =  UserDefaults.standard.string(forKey: "Key")
         }
-       
         alertView.showInfo("Info", subTitle: "Please add the name below in text field")
         
     }
@@ -79,27 +54,7 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
 
     
     @IBAction func addCategoryButton(_ sender: Any) {
-        
-//        let alert = UIAlertController(title: "Add new category",message : "",preferredStyle: .alert)
-//
-//        let cancel = UIAlertAction(title: "Cancel",style: .cancel) { (action) in
-//        }
-//
-//        alert.addTextField { (field) in
-//            field.placeholder = "Add new category"
-//        }
-//
-//        let action = UIAlertAction(title: "Add",style: .default) { (action)  in
-//            let newCategory = Category()
-//            newCategory.name  = alert.textFields![0].text!
-//            self.save(category: newCategory)
-//        }
-//        alert.addAction(action)
-//
-//        alert.addAction(cancel)
-//        present(alert, animated: true, completion: nil)
-//
-        
+
         let appearance = SCLAlertView.SCLAppearance(
             showCircularIcon: true
         )
@@ -157,11 +112,30 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        CatergoryCollection.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionElementKindSectionFooter, withReuseIdentifier: "footer")
+        footer = UIView()
+        footer.translatesAutoresizingMaskIntoConstraints = false
+        footer.backgroundColor = UIColor(red: 0.8471, green: 0.3804, blue: 0.3725, alpha: 1.0)
+        view.addSubview(footer)
+        footer.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        footer.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        footer.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
+        footer.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        
+        footer.isHidden = true
+
+        deleteButton = UIButton()
+        deleteButton.translatesAutoresizingMaskIntoConstraints = false
+        deleteButton.setBackgroundImage(UIImage(named: "trash"), for: .normal)
+        footer.addSubview(deleteButton)
+        deleteButton.centerXAnchor.constraint(equalTo: footer.centerXAnchor).isActive = true
+        deleteButton.centerYAnchor.constraint(equalTo: footer.centerYAnchor).isActive = true
+        deleteButton.widthAnchor.constraint(equalToConstant: 40).isActive = true
+        deleteButton.heightAnchor.constraint(equalToConstant: 40).isActive = true
+        deleteButton.addTarget(self, action: #selector(handleDelete), for: .touchUpInside)
+        
+//        CatergoryCollection.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionElementKindSectionFooter, withReuseIdentifier: "footer")
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Select", style: .plain, target: self, action: #selector(handleEdit))
         
-        
-
         self.userNameLabel.text =  UserDefaults.standard.string(forKey: "Key")
         let today = Date()
         let weekday = Calendar.current.component(.weekday, from: today)
@@ -178,24 +152,19 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
         CountItem()
         
         longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(self.handleLongGesture(gesture:)))
-        
-
-
-    
-        
         CatergoryCollection.addGestureRecognizer(longPressGesture)
 //        CatergoryCollection.addGestureRecognizer(panGesture)
-        
-        if let layout = CatergoryCollection.collectionViewLayout as? UICollectionViewFlowLayout {
-            layout.footerReferenceSize = CGSize(width: 0, height: 50)
-            layout.sectionFootersPinToVisibleBounds = true
-            
-
-        }
-        
-        
     }
 
+    @objc func handleDelete () {
+        
+        for (int,_) in selectImages {
+            try! realm.write {
+                self.realm.delete(categories![int])
+            }
+        }
+        self.CatergoryCollection.reloadData()
+    }
     
     @objc func handleEdit () {
         navigationItem.title = "Select Items"
@@ -230,15 +199,8 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
                 cell.imageIncluded = false
                 selectImages[indexPathSelected.row]?.removeFromSuperview()
                 let _ = selectImages.removeValue(forKey: indexPathSelected.row)
-                
             }
-
-            
-            
         }
-        
-        
-        
     }
     
     @objc func handleCancel() {
@@ -294,6 +256,10 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
         return true
     }
     
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize.init(width: view.bounds.width/2, height: 150)
+    }
+    
     
     func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         try! realm.write {
@@ -320,61 +286,25 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
         
 //        self.CatergoryCollection.reloadData()
     }
-    
-    
-    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        
-        if kind == UICollectionElementKindSectionFooter {
-            footer = CatergoryCollection.dequeueReusableSupplementaryView(ofKind: UICollectionElementKindSectionFooter, withReuseIdentifier: "footer", for: indexPath)
-            footer.backgroundColor = UIColor(red: 0.8471, green: 0.3804, blue: 0.3725, alpha: 1.0)
-            footer.isHidden = true
-            return footer
-           
-        } else {
-            return UICollectionReusableView()
-        }
-        
-    }
-   
-    
+
     fileprivate var longPressGesture: UILongPressGestureRecognizer!
     
-
-
-    
     @objc func handleLongGesture(gesture: UILongPressGestureRecognizer) {
-        
-        
         
         guard let selectedIndexPath = CatergoryCollection.indexPathForItem(at: gesture.location(in: CatergoryCollection)) else {
             return
         }
         
-        
         switch(gesture.state) {
         case .began:
-            
-            
-            
             CatergoryCollection.beginInteractiveMovementForItem(at: selectedIndexPath)
-            
             
         case .changed:
             CatergoryCollection.updateInteractiveMovementTargetPosition(gesture.location(in: gesture.view!))
             
-            
-            
         case .ended:
-            
             CatergoryCollection.endInteractiveMovement()
-            
-            
-            
-            
-            
-            
-            
-            
+  
         default:
             CatergoryCollection.cancelInteractiveMovement()
             
