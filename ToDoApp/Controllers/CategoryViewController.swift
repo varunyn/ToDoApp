@@ -15,7 +15,15 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
     let realm = try! Realm()
     
     private var currentCellIndex : IndexPath!
+    
+    var footer : UICollectionReusableView!
+    
 
+    
+    private var selectImages = [Int : UIImageView] ()
+    private var tapGesture : UITapGestureRecognizer!
+    
+    
     var categories: Results<Category>?
     @IBOutlet weak var CatergoryCollection: UICollectionView!
     
@@ -67,7 +75,8 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
 
     private var initialCompletedTasks = 0
     private var initialTotalTasks = 0
-    
+    var panGesture : UIPanGestureRecognizer!
+
     
     @IBAction func addCategoryButton(_ sender: Any) {
         
@@ -148,6 +157,11 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        CatergoryCollection.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionElementKindSectionFooter, withReuseIdentifier: "footer")
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Select", style: .plain, target: self, action: #selector(handleEdit))
+        
+        
+
         self.userNameLabel.text =  UserDefaults.standard.string(forKey: "Key")
         let today = Date()
         let weekday = Calendar.current.component(.weekday, from: today)
@@ -164,9 +178,84 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
         CountItem()
         
         longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(self.handleLongGesture(gesture:)))
+        
+
+
+    
+        
         CatergoryCollection.addGestureRecognizer(longPressGesture)
+//        CatergoryCollection.addGestureRecognizer(panGesture)
+        
+        if let layout = CatergoryCollection.collectionViewLayout as? UICollectionViewFlowLayout {
+            layout.footerReferenceSize = CGSize(width: 0, height: 50)
+            layout.sectionFootersPinToVisibleBounds = true
+            
+
+        }
+        
         
     }
+
+    
+    @objc func handleEdit () {
+        navigationItem.title = "Select Items"
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(handleCancel))
+        navigationController?.navigationBar.isTranslucent = false
+        navigationController?.navigationBar.barTintColor = UIColor(red: 0.8471, green: 0.3804, blue: 0.3725, alpha: 1.0)
+        
+        addButton.isHidden = true
+        footer.isHidden = false
+        
+        CatergoryCollection.allowsSelection = false
+        tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleSelect))
+        CatergoryCollection.addGestureRecognizer(tapGesture)
+        
+    }
+    
+    @objc func handleSelect(gesture: UITapGestureRecognizer) {
+        
+        guard let indexPathSelected = CatergoryCollection.indexPathForItem(at: gesture.location(in: CatergoryCollection)) else {return}
+        if let cell = CatergoryCollection.cellForItem(at: indexPathSelected) as? CollectionViewCell {
+            if cell.imageIncluded == false {
+                cell.imageIncluded = true
+                let selectImageView = UIImageView(image: UIImage(named:"select"))
+                selectImageView.translatesAutoresizingMaskIntoConstraints = false
+                cell.addSubview(selectImageView)
+                selectImages[indexPathSelected.row] = selectImageView
+                selectImageView.bottomAnchor.constraint(equalTo: cell.bottomAnchor, constant: -10).isActive = true
+                selectImageView.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: -10).isActive = true
+                selectImageView.widthAnchor.constraint(equalToConstant: 30).isActive = true
+                selectImageView.heightAnchor.constraint(equalToConstant: 30).isActive = true
+            } else {
+                cell.imageIncluded = false
+                selectImages[indexPathSelected.row]?.removeFromSuperview()
+                let _ = selectImages.removeValue(forKey: indexPathSelected.row)
+                
+            }
+
+            
+            
+        }
+        
+        
+        
+    }
+    
+    @objc func handleCancel() {
+        navigationItem.title = ""
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Select", style: .plain, target: self, action: #selector(handleEdit))
+        CatergoryCollection.allowsSelection = true
+        CatergoryCollection.removeGestureRecognizer(tapGesture)
+        footer.isHidden = true
+        navigationController?.navigationBar.barTintColor = .white
+        selectImages.forEach { (element) in
+            element.value.removeFromSuperview()
+        }
+        selectImages.removeAll()
+        addButton.isHidden = false
+
+    }
+
     
     override func viewWillAppear(_ animated: Bool) {
        var totaltaskscount = 0
@@ -179,11 +268,7 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
         totalTaskLabel.text = String(totaltaskscount)
     }
     
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    
+
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return categories?.count ?? 1
@@ -209,6 +294,7 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
         return true
     }
     
+    
     func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         try! realm.write {
             let sourceObject = categories?[sourceIndexPath.row]
@@ -232,28 +318,66 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
             sourceObject?.order = destinationObjectOrder!
         }
         
-        self.CatergoryCollection.reloadData()
+//        self.CatergoryCollection.reloadData()
     }
     
+    
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        
+        if kind == UICollectionElementKindSectionFooter {
+            footer = CatergoryCollection.dequeueReusableSupplementaryView(ofKind: UICollectionElementKindSectionFooter, withReuseIdentifier: "footer", for: indexPath)
+            footer.backgroundColor = UIColor(red: 0.8471, green: 0.3804, blue: 0.3725, alpha: 1.0)
+            footer.isHidden = true
+            return footer
+           
+        } else {
+            return UICollectionReusableView()
+        }
+        
+    }
    
     
     fileprivate var longPressGesture: UILongPressGestureRecognizer!
     
+
+
+    
     @objc func handleLongGesture(gesture: UILongPressGestureRecognizer) {
+        
+        
+        
+        guard let selectedIndexPath = CatergoryCollection.indexPathForItem(at: gesture.location(in: CatergoryCollection)) else {
+            return
+        }
+        
+        
         switch(gesture.state) {
         case .began:
-            guard let selectedIndexPath = CatergoryCollection.indexPathForItem(at: gesture.location(in: CatergoryCollection)) else {
-                break
-            }
+            
+            
+            
             CatergoryCollection.beginInteractiveMovementForItem(at: selectedIndexPath)
+            
+            
         case .changed:
             CatergoryCollection.updateInteractiveMovementTargetPosition(gesture.location(in: gesture.view!))
-
+            
+            
+            
         case .ended:
+            
             CatergoryCollection.endInteractiveMovement()
-
+            
+            
+            
+            
+            
+            
+            
+            
         default:
             CatergoryCollection.cancelInteractiveMovement()
+            
         }
         
     }

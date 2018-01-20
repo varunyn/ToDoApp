@@ -19,7 +19,7 @@ class CollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var tasksCountLabel: UILabel!
     
  
-    
+    var imageIncluded = false
     
     
     
