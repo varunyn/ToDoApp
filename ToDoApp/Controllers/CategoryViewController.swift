@@ -8,6 +8,7 @@
 
 import UIKit
 import RealmSwift
+import SCLAlertView
 
 class CategoryViewController: UIViewController,UICollectionViewDelegate, UICollectionViewDataSource {
    
@@ -26,32 +27,84 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
     
     @IBOutlet weak var completedTaskLabel: UILabel!
     
+    @IBAction func userNameEditButtonPressed(_ sender: Any) {
+//        let alert = UIAlertController(title: "Info",message : "",preferredStyle: .alert)
+//
+//        let cancel = UIAlertAction(title: "Cancel",style: .cancel) { (action) in
+//        }
+//
+//        alert.addTextField { (field) in
+//            field.placeholder = "Insert Name"
+//        }
+//
+//        let action = UIAlertAction(title: "Done",style: .default) { (action)  in
+//            let userName: String
+//            userName  = alert.textFields![0].text!
+//            UserDefaults.standard.removeObject(forKey: "Key")
+//            UserDefaults.standard.set(userName, forKey: "Key")
+//            self.userNameLabel.text =  UserDefaults.standard.string(forKey: "Key")
+//        }
+//        alert.addAction(action)
+//
+//        alert.addAction(cancel)
+//        present(alert, animated: true, completion: nil)
+//
+        
+        let alertView = SCLAlertView()
+        
+        let txt = alertView.addTextField("Enter your name")
+        alertView.addButton("Change Name") {
+            UserDefaults.standard.removeObject(forKey: "Key")
+            UserDefaults.standard.set(txt.text, forKey: "Key")
+            self.userNameLabel.text =  UserDefaults.standard.string(forKey: "Key")
+        }
+       
+        alertView.showInfo("Info", subTitle: "Please add the name below in text field")
+        
+    }
     
+    @IBOutlet weak var userNameLabel: UILabel!
+
     private var initialCompletedTasks = 0
-     private var initialTotalTasks = 0
+    private var initialTotalTasks = 0
     
     
     @IBAction func addCategoryButton(_ sender: Any) {
         
-        let alert = UIAlertController(title: "Add new category",message : "",preferredStyle: .alert)
+//        let alert = UIAlertController(title: "Add new category",message : "",preferredStyle: .alert)
+//
+//        let cancel = UIAlertAction(title: "Cancel",style: .cancel) { (action) in
+//        }
+//
+//        alert.addTextField { (field) in
+//            field.placeholder = "Add new category"
+//        }
+//
+//        let action = UIAlertAction(title: "Add",style: .default) { (action)  in
+//            let newCategory = Category()
+//            newCategory.name  = alert.textFields![0].text!
+//            self.save(category: newCategory)
+//        }
+//        alert.addAction(action)
+//
+//        alert.addAction(cancel)
+//        present(alert, animated: true, completion: nil)
+//
         
-        let cancel = UIAlertAction(title: "Cancel",style: .cancel) { (action) in
-        }
+        let appearance = SCLAlertView.SCLAppearance(
+            showCircularIcon: true
+        )
+        let alertView1 = SCLAlertView(appearance: appearance)
+
         
-        alert.addTextField { (field) in
-            field.placeholder = "Add new category"
-        }
-        
-        let action = UIAlertAction(title: "Add",style: .default) { (action)  in
+        let txt = alertView1.addTextField("Enter Category")
+        alertView1.addButton("Add Category") {
             let newCategory = Category()
-            newCategory.name  = alert.textFields![0].text!
-            self.save(category: newCategory)
+                        newCategory.name  = txt.text!
+                        self.save(category: newCategory)
         }
-        alert.addAction(action)
-        
-        alert.addAction(cancel)
-        present(alert, animated: true, completion: nil)
-        
+         let alertViewIcon = UIImage(named: "category_icon")
+        alertView1.showInfo("Category", subTitle: "Please add the name of the category to add", circleIconImage: alertViewIcon)
     }
     
     func save(category:Category){
@@ -95,6 +148,7 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        self.userNameLabel.text =  UserDefaults.standard.string(forKey: "Key")
         let today = Date()
         let weekday = Calendar.current.component(.weekday, from: today)
         let month = Calendar.current.component(.month, from: today)
@@ -106,9 +160,9 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
         addButton.layer.maskedCorners = [.layerMinXMinYCorner]
         print("viewdidload 111 ")
         loadCategories()
-
+        
         CountItem()
-    
+        
         longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(self.handleLongGesture(gesture:)))
         CatergoryCollection.addGestureRecognizer(longPressGesture)
         

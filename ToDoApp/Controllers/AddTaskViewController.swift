@@ -15,6 +15,7 @@ class AddTaskViewController: UIViewController{
     
     let realm = try! Realm()
     
+    @IBOutlet weak var addTask: UIButton!
     
     @IBOutlet weak var textField: UITextField!
     
@@ -45,6 +46,13 @@ class AddTaskViewController: UIViewController{
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        addTask.layer.cornerRadius = 10
+        addTask.layer.shadowRadius = 10
+        addTask.layer.shadowOffset = CGSize.init(width: 0, height: 10)
+        addTask.layer.shadowOpacity = 0.5
+        addTask.layer.shadowColor = UIColor.red.cgColor
+        
         
     }
     

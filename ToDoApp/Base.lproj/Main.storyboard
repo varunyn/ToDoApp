@@ -105,12 +105,24 @@
                                         <color key="textColor" red="0.45098039215686275" green="0.44313725490196076" blue="0.52156862745098043" alpha="1" colorSpace="calibratedRGB"/>
                                         <nil key="highlightedColor"/>
                                     </label>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Varun" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6zA-Nl-sGC">
-                                        <rect key="frame" x="0.0" y="36" width="82.5" height="36"/>
-                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="30"/>
-                                        <color key="textColor" red="0.36470588235294116" green="0.33725490196078434" blue="0.55686274509803924" alpha="1" colorSpace="calibratedRGB"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
+                                    <stackView opaque="NO" contentMode="scaleToFill" alignment="top" translatesAutoresizingMaskIntoConstraints="NO" id="2r8-VM-NA8">
+                                        <rect key="frame" x="0.0" y="36" width="98.5" height="36"/>
+                                        <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Varun" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Q3P-e7-Lke">
+                                                <rect key="frame" x="0.0" y="0.0" width="82.5" height="36"/>
+                                                <fontDescription key="fontDescription" type="boldSystem" pointSize="30"/>
+                                                <color key="textColor" red="0.36470588240000001" green="0.33725490200000002" blue="0.5568627451" alpha="1" colorSpace="calibratedRGB"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <button opaque="NO" contentMode="scaleAspectFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="LYM-1W-pOr">
+                                                <rect key="frame" x="82.5" y="0.0" width="16" height="22"/>
+                                                <state key="normal" image="pencil"/>
+                                                <connections>
+                                                    <action selector="userNameEditButtonPressed:" destination="Glh-94-ZsQ" eventType="touchUpInside" id="LuY-MD-7PC"/>
+                                                </connections>
+                                            </button>
+                                        </subviews>
+                                    </stackView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Sunday, 12 March" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="nOo-65-VJZ">
                                         <rect key="frame" x="0.0" y="72" width="135" height="20.5"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
@@ -259,6 +271,7 @@
                         <outlet property="addButton" destination="BgT-jN-NZF" id="kqK-Tr-sSq"/>
                         <outlet property="completedTaskLabel" destination="l6j-MU-AWE" id="pSj-fu-85M"/>
                         <outlet property="totalTaskLabel" destination="G46-3d-vb2" id="X3Q-I0-iwh"/>
+                        <outlet property="userNameLabel" destination="Q3P-e7-Lke" id="oCC-CU-ByE"/>
                         <segue destination="EZp-s8-Vce" kind="show" identifier="goToItems" id="SFF-on-jDd"/>
                     </connections>
                 </viewController>
@@ -378,6 +391,7 @@
                         <subviews>
                             <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Add new task here" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="yZ7-xk-Lw5">
                                 <rect key="frame" x="37" y="226" width="301" height="30"/>
+                                <color key="backgroundColor" red="0.96078431369999995" green="0.96470588239999999" blue="0.98431372549999996" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="textColor"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits"/>
@@ -394,7 +408,7 @@
                                 </connections>
                             </button>
                         </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <color key="backgroundColor" red="0.96078431369999995" green="0.96470588239999999" blue="0.98431372549999996" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
                             <constraint firstItem="yZ7-xk-Lw5" firstAttribute="centerX" secondItem="x6i-pc-re1" secondAttribute="centerX" id="9FW-Ap-8pY"/>
                             <constraint firstItem="yZ7-xk-Lw5" firstAttribute="width" secondItem="x6i-pc-re1" secondAttribute="width" multiplier="0.8" constant="1" id="RkF-Xj-Aie"/>
@@ -404,6 +418,7 @@
                     </view>
                     <navigationItem key="navigationItem" id="OZ3-lq-1bs"/>
                     <connections>
+                        <outlet property="addTask" destination="xGA-dn-BwI" id="qlr-9D-nd3"/>
                         <outlet property="textField" destination="yZ7-xk-Lw5" id="bYw-f4-Ern"/>
                     </connections>
                 </viewController>
@@ -431,4 +446,7 @@
             <point key="canvasLocation" x="1340" y="-255"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="pencil" width="16" height="16"/>
+    </resources>
 </document>

@@ -1,0 +1,26 @@
+PODS:
+  - Realm (3.1.0):
+    - Realm/Headers (= 3.1.0)
+  - Realm/Headers (3.1.0)
+  - RealmSwift (3.1.0):
+    - Realm (= 3.1.0)
+  - SCLAlertView (0.7.0)
+  - SwiftReorder (3.2.0)
+  - TwicketSegmentedControl (0.1.2)
+
+DEPENDENCIES:
+  - RealmSwift
+  - SCLAlertView (~> 0.7)
+  - SwiftReorder (~> 3.2)
+  - TwicketSegmentedControl (~> 0.1)
+
+SPEC CHECKSUMS:
+  Realm: 09513d7c054678d65cd02ce09871f805b0d758ac
+  RealmSwift: e868fee9b10e5490ad94b6b6ecd9027944da1824
+  SCLAlertView: 8a14ffc40590c619e183eed2298b854385f30be1
+  SwiftReorder: 27d737099efd6125339d5e8cb090e46c67341143
+  TwicketSegmentedControl: 6d7a4cf243657e0ac3f00d06d873a25334c04042
+
+PODFILE CHECKSUM: 78d7ae41e95666a30571d9c4734282b8a077a6ea
+
+COCOAPODS: 1.2.0
