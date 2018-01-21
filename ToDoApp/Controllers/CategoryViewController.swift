@@ -19,6 +19,8 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
     var footer : UIView!
     var deleteButton: UIButton!
     
+    var selectedCell = [Int : UICollectionViewCell] ()
+    
     private var selectImages = [Int : UIImageView] ()
     private var tapGesture : UITapGestureRecognizer!
     
@@ -146,7 +148,7 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
         addButton.clipsToBounds = true
         addButton.layer.cornerRadius = 20
         addButton.layer.maskedCorners = [.layerMinXMinYCorner]
-        print("viewdidload 111 ")
+
         loadCategories()
         
         CountItem()
@@ -158,12 +160,39 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
 
     @objc func handleDelete () {
         
-        for (int,_) in selectImages {
+        let sortedIndex = selectImages.sorted { (element1, element2) -> Bool in
+            return element1.key > element2.key
+        }
+        
+        
+        
+        
+        for (int,_) in sortedIndex {
+
             try! realm.write {
                 self.realm.delete(categories![int])
             }
         }
         self.CatergoryCollection.reloadData()
+        selectedCell.forEach { (element) in
+            if let cell = element.value as? CollectionViewCell {
+                cell.imageIncluded = nil
+            }
+        }
+        selectedCell.removeAll()
+        
+        
+        navigationItem.title = ""
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Select", style: .plain, target: self, action: #selector(handleEdit))
+        CatergoryCollection.allowsSelection = true
+        CatergoryCollection.removeGestureRecognizer(tapGesture)
+        footer.isHidden = true
+        navigationController?.navigationBar.barTintColor = .white
+        selectImages.forEach { (element) in
+            element.value.removeFromSuperview()
+        }
+        selectImages.removeAll()
+        addButton.isHidden = false
     }
     
     @objc func handleEdit () {
@@ -185,20 +214,26 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
         
         guard let indexPathSelected = CatergoryCollection.indexPathForItem(at: gesture.location(in: CatergoryCollection)) else {return}
         if let cell = CatergoryCollection.cellForItem(at: indexPathSelected) as? CollectionViewCell {
-            if cell.imageIncluded == false {
+            if cell.imageIncluded == false || cell.imageIncluded == nil {
                 cell.imageIncluded = true
                 let selectImageView = UIImageView(image: UIImage(named:"select"))
                 selectImageView.translatesAutoresizingMaskIntoConstraints = false
                 cell.addSubview(selectImageView)
-                selectImages[indexPathSelected.row] = selectImageView
+                selectImages[indexPathSelected.item] = selectImageView
+
                 selectImageView.bottomAnchor.constraint(equalTo: cell.bottomAnchor, constant: -10).isActive = true
                 selectImageView.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: -10).isActive = true
                 selectImageView.widthAnchor.constraint(equalToConstant: 30).isActive = true
                 selectImageView.heightAnchor.constraint(equalToConstant: 30).isActive = true
+                
+                selectedCell[indexPathSelected.item] = cell
             } else {
                 cell.imageIncluded = false
                 selectImages[indexPathSelected.row]?.removeFromSuperview()
                 let _ = selectImages.removeValue(forKey: indexPathSelected.row)
+                let _ = selectedCell.removeValue(forKey: indexPathSelected.item)
+
+                
             }
         }
     }
@@ -213,6 +248,14 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
         selectImages.forEach { (element) in
             element.value.removeFromSuperview()
         }
+        selectedCell.forEach { (element) in
+            if let cell = element.value as? CollectionViewCell {
+                cell.imageIncluded = nil
+            }
+        }
+        
+        selectedCell.removeAll()
+        
         selectImages.removeAll()
         addButton.isHidden = false
 
@@ -233,7 +276,7 @@ class CategoryViewController: UIViewController,UICollectionViewDelegate, UIColle
 
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return categories?.count ?? 1
+        return categories?.count ?? 0
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
