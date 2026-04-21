@@ -31,7 +31,10 @@ struct CategoryListView: View {
     @State private var showReorder = false
     @State private var navigationPath = NavigationPath()
 
-    private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
+    private let columns = [
+        GridItem(.flexible(), spacing: AppAppearance.gridSpacing),
+        GridItem(.flexible(), spacing: AppAppearance.gridSpacing),
+    ]
 
     private var totalTaskCount: Int {
         categories.reduce(0) { $0 + $1.items.count }
@@ -52,11 +55,11 @@ struct CategoryListView: View {
                         ContentUnavailableView(
                             "No categories",
                             systemImage: "square.grid.2x2",
-                            description: Text("Tap + to add your first category.")
+                            description: Text("Tap Add category in the toolbar to create one.")
                         )
                         .padding(.top, 40)
                     } else {
-                        LazyVGrid(columns: columns, spacing: 12) {
+                        LazyVGrid(columns: columns, spacing: AppAppearance.gridSpacing) {
                             ForEach(categories) { category in
                                 categoryCell(category)
                             }
@@ -65,7 +68,6 @@ struct CategoryListView: View {
                 }
                 .padding()
             }
-            .tint(Color(red: 0.8471, green: 0.3804, blue: 0.3725))
             .navigationDestination(for: PersistentIdentifier.self) { id in
                 if let category = categories.first(where: { $0.persistentModelID == id }) {
                     TaskListView(category: category)
@@ -80,22 +82,18 @@ struct CategoryListView: View {
                         showEditName = true
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
                     if isSelecting {
-                        Button("Cancel", role: .cancel) {
-                            cancelSelection()
-                        }
+                        Button("Cancel", role: .cancel, action: cancelSelection)
                     } else {
                         Button("Select") {
                             isSelecting = true
                         }
                     }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
                     Button("Reorder", systemImage: "arrow.up.arrow.down") {
                         showReorder = true
                     }
-                    .disabled(categories.count < 2)
+                    .disabled(categories.count < 2 || isSelecting)
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button("Add category", systemImage: "plus") {
@@ -115,9 +113,7 @@ struct CategoryListView: View {
             }
             .alert("Category", isPresented: $showAddCategory) {
                 TextField("Name", text: $newCategoryName)
-                Button("Add") {
-                    addCategory()
-                }
+                Button("Add", action: addCategory)
                 Button("Cancel", role: .cancel) {}
             } message: {
                 Text("Enter a name for the new category.")
@@ -141,12 +137,21 @@ struct CategoryListView: View {
                 .foregroundStyle(.secondary)
             HStack {
                 Text(UserNameStorage.name ?? "Your list")
-                    .font(.title2.weight(.semibold))
+                    .font(.title2)
+                    .bold()
                 Spacer()
             }
             HStack(spacing: 24) {
-                Label("\(totalTaskCount) tasks", systemImage: "list.bullet")
-                Label("\(completedTaskCount) done", systemImage: "checkmark.circle")
+                Label {
+                    Text("^[\(totalTaskCount) task](inflect: true)")
+                } icon: {
+                    Image(systemName: "list.bullet")
+                }
+                Label {
+                    Text(verbatim: "\(completedTaskCount) completed")
+                } icon: {
+                    Image(systemName: "checkmark.circle")
+                }
             }
             .font(.subheadline)
             .foregroundStyle(.secondary)
@@ -179,18 +184,18 @@ struct CategoryListView: View {
                         .font(.headline)
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.leading)
-                    Text("\(category.items.count) tasks")
+                    Text("^[\(category.items.count) task](inflect: true)")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                     Spacer(minLength: 0)
                 }
-                .frame(maxWidth: .infinity, minHeight: 120, alignment: .topLeading)
+                .frame(maxWidth: .infinity, minHeight: AppAppearance.cardMinHeight, alignment: .topLeading)
                 .padding()
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .strokeBorder(Color.accentColor.opacity(0.25), lineWidth: 1)
-                )
+                .background {
+                    RoundedRectangle(cornerRadius: AppAppearance.cardCornerRadius, style: .continuous)
+                        .fill(.regularMaterial)
+                        .strokeBorder(AppAppearance.accent.opacity(0.25), lineWidth: 1)
+                }
 
                 if isSelecting, isSelected {
                     Image("select")
@@ -198,31 +203,27 @@ struct CategoryListView: View {
                         .scaledToFit()
                         .frame(width: 28, height: 28)
                         .padding(10)
+                        .accessibilityHidden(true)
                 }
             }
         }
         .buttonStyle(.plain)
         .accessibilityLabel(category.name.isEmpty ? "Untitled category" : category.name)
-        .accessibilityHint(isSelecting ? "Double tap to select or deselect" : "Double tap to open tasks")
+        .accessibilityHint(isSelecting ? "Toggles selection for delete" : "Opens tasks for this category")
     }
 
     private var selectionFooter: some View {
         HStack {
             Spacer()
-            Button(role: .destructive) {
-                deleteSelectedCategories()
-            } label: {
-                Image("trash")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 36, height: 36)
+            Button(role: .destructive, action: deleteSelectedCategories) {
+                Label("Delete selected", systemImage: "trash.fill")
             }
             .disabled(selectedIDs.isEmpty)
-            .accessibilityLabel("Delete selected categories")
+            .frame(minWidth: AppAppearance.minimumTapTarget, minHeight: AppAppearance.minimumTapTarget)
             Spacer()
         }
         .padding(.vertical, 12)
-        .background(Color.accentColor.opacity(0.12))
+        .background(AppAppearance.accent.opacity(0.12))
     }
 
     private func toggleSelection(_ category: Category) {

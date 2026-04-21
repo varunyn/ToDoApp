@@ -10,36 +10,36 @@ struct TaskListView: View {
     @Bindable var category: Category
     @Environment(\.modelContext) private var modelContext
 
-    @State private var segment = 0
+    @State private var filter: TaskListFilter = .all
 
     private var baseItems: [Item] {
         category.items.sorted { $0.order < $1.order }
     }
 
     private var filteredItems: [Item] {
-        switch segment {
-        case 1:
-            return baseItems.filter(\.isDone)
-        case 2:
-            return baseItems.filter { !$0.isDone }
-        default:
+        switch filter {
+        case .all:
             return baseItems
+        case .completed:
+            return baseItems.filter(\.isDone)
+        case .pending:
+            return baseItems.filter { !$0.isDone }
         }
     }
 
     var body: some View {
         List {
             Section {
-                Picker("Filter", selection: $segment) {
-                    Text("All").tag(0)
-                    Text("Completed").tag(1)
-                    Text("Pending").tag(2)
+                Picker("Filter", selection: $filter) {
+                    ForEach(TaskListFilter.allCases) { option in
+                        Text(option.title).tag(option)
+                    }
                 }
                 .pickerStyle(.segmented)
                 .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
             }
 
-            if segment == 0 {
+            if filter == .all {
                 ForEach(filteredItems) { item in
                     taskRow(item)
                 }
@@ -59,11 +59,11 @@ struct TaskListView: View {
                 NavigationLink {
                     AddTaskView(category: category)
                 } label: {
-                    Image(systemName: "plus")
+                    Label("Add task", systemImage: "plus")
                 }
-                .accessibilityLabel("Add task")
+                .labelStyle(.iconOnly)
             }
-            if segment == 0 {
+            if filter == .all {
                 ToolbarItem(placement: .topBarTrailing) {
                     EditButton()
                 }
@@ -81,6 +81,8 @@ struct TaskListView: View {
                     .font(.title2)
                     .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(item.isDone ? .secondary : .primary)
+                    .frame(width: AppAppearance.minimumTapTarget, height: AppAppearance.minimumTapTarget)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.borderless)
             .accessibilityLabel(item.isDone ? "Mark as not done" : "Mark as done")

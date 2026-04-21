@@ -11,6 +11,7 @@ struct ToDoAppApp: App {
     var body: some Scene {
         WindowGroup {
             CategoryListView()
+                .tint(AppAppearance.accent)
         }
         .modelContainer(for: [Category.self, Item.self], inMemory: false)
     }
