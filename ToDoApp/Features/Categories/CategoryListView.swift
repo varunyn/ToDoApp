@@ -198,10 +198,10 @@ struct CategoryListView: View {
                 }
 
                 if isSelecting, isSelected {
-                    Image("select")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 28, height: 28)
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.title2)
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(AppAppearance.accent)
                         .padding(10)
                         .accessibilityHidden(true)
                 }
