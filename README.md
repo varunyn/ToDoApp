@@ -1,26 +1,60 @@
 # ToDoApp
 
-This is basic ToDo app which allows user to add categories and tasks inside category.
+Native iOS app for organizing tasks: create **categories**, add **tasks** within each category, mark work complete, filter by status, and reorder lists.
 
-## Main page .
+**Stack:** Swift 6 · SwiftUI · SwiftData · Xcode
 
-1. Collection View with flow layout to display categories input by users.
-2. User can edit the name and it will be saved persistently between sessions.
-3. User can rearrange the collection view cell using drag and move and it would result in data model arrangment.
-4. User can select multiple cells at once and have the option to cancel/delete. This functionality behaves just like native photo app of Apple.
-5. Add button will display the custom View to add the category.
+---
 
-## Tasks page
+## Requirements
 
-1. Embed custom segmented control to navigate between All, Completed and Pending tasks.
-2. Button to represent the state of completness of the task.
-3. StrikeOut the task if its completed.
+| | |
+|---|---|
+| **Xcode** | A recent release with an iOS SDK that matches or exceeds the project’s **minimum deployment** (see the **ToDoApp** target → **General**). |
+| **Run destination** | iOS Simulator or a physical iPhone / iPad. |
 
-## Video walkthrough
+For running on a **physical device**, set your **Team** and **Bundle Identifier** under **Signing & Capabilities**.
 
-<a href="1"><img src="https://media.giphy.com/media/3o751YP6fud33YuZ5C/giphy.gif" title="Main Page"/>
+---
 
+## Run locally
 
-##  Core library used
+1. Open **`ToDoApp.xcodeproj`** in Xcode (**File → Open** or double-click the file).
+2. Choose a simulator or connected device in the scheme/run destination menu.
+3. **⌘R** to build and run. Use **⌘B** to build only.
 
-1. Realm
+---
+
+## Repository layout
+
+| Path | Purpose |
+|------|---------|
+| `ToDoApp/App/` | `@main` app entry (`ToDoAppApp`), SwiftData `modelContainer` |
+| `ToDoApp/DataModel/` | `Category` and `Item` SwiftData models |
+| `ToDoApp/Features/Categories/` | Home screen: category grid, selection, reorder sheet |
+| `ToDoApp/Features/Tasks/` | Task list (filters, edit, add task) |
+| `ToDoApp/Assets.xcassets/` | App icon and image assets |
+| `ToDoApp/Base.lproj/` | Launch screen |
+| `ToDoApp.xcodeproj/` | Xcode project and shared scheme |
+
+---
+
+## Behavior
+
+**Categories**
+
+- Two-column grid with category name and task count  
+- Add categories via alert; **Select** for multi-select delete; **Reorder** opens a reorder sheet  
+- Header shows the current date and optional display name (stored in `UserDefaults`, key `Key`)  
+- Toolbar actions: edit name, select mode, reorder, add category  
+
+**Tasks**
+
+- Segmented filter: **All** · **Completed** · **Pending**  
+- Toggle completion with SF Symbols; strikethrough when completed  
+- Swipe to delete; with **All** selected, use **Edit** to reorder rows  
+- **+** navigates to add a new task  
+
+**Data**
+
+- Persisted on device with **SwiftData** (no remote sync in this project).

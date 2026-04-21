@@ -2,18 +2,24 @@
 //  Item.swift
 //  ToDoApp
 //
-//  Created by Varun Yadav on 1/16/18.
-//  Copyright © 2018 Varun Yadav. All rights reserved.
-//
 
 import Foundation
-import RealmSwift
+import SwiftData
 
-class Item: Object {
-    @objc dynamic var title : String = ""
-    @objc dynamic var done: Bool = false
-    var parentCategory = LinkingObjects(fromType:  Category.self, property: "items")
-    
-     @objc dynamic var order = 0 
-    
+@Model
+final class Item {
+    #Index<Item>([\.order], [\.isDone])
+
+    var title: String
+    var isDone: Bool
+    var order: Int
+
+    var category: Category?
+
+    init(title: String = "", isDone: Bool = false, order: Int = 0, category: Category? = nil) {
+        self.title = title
+        self.isDone = isDone
+        self.order = order
+        self.category = category
+    }
 }

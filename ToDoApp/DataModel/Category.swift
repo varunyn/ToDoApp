@@ -2,17 +2,23 @@
 //  Category.swift
 //  ToDoApp
 //
-//  Created by Varun Yadav on 1/16/18.
-//  Copyright © 2018 Varun Yadav. All rights reserved.
-//
 
 import Foundation
-import RealmSwift
+import SwiftData
 
-class Category: Object {
-    @objc dynamic var name: String = ""
-    let items = List<Item>()
-    let array = Array<Int>()
-    
-    @objc dynamic var order = 0 
+@Model
+final class Category {
+    #Index<Category>([\.order])
+
+    var name: String
+    var order: Int
+
+    @Relationship(deleteRule: .cascade, inverse: \Item.category)
+    var items: [Item]
+
+    init(name: String = "", order: Int = 0, items: [Item] = []) {
+        self.name = name
+        self.order = order
+        self.items = items
+    }
 }
