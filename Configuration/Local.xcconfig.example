@@ -1,0 +1,4 @@
+// Copy to Local.xcconfig (gitignored) to override bundle IDs or App Group without editing Shared.xcconfig.
+MAIN_BUNDLE_IDENTIFIER = com.example.ToDoApp
+WIDGET_BUNDLE_IDENTIFIER = $(MAIN_BUNDLE_IDENTIFIER).ToDoWidgetExtension
+APP_GROUP_IDENTIFIER = group.com.example.ToDoApp

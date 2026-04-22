@@ -47,6 +47,7 @@ iOSInjectionProject/
 .env
 .env.*
 !.env.example
+Configuration/Local.xcconfig
 .agents/
 .cursor/
 skills-lock.json

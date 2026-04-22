@@ -1,0 +1,4 @@
+// Base configuration included by the Xcode project (Debug/Release).
+// Override per machine without committing: create Configuration/Local.xcconfig (see Shared.xcconfig).
+#include "Shared.xcconfig"
+#include? "Local.xcconfig"

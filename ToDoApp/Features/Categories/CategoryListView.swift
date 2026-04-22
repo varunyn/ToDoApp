@@ -30,6 +30,7 @@ struct CategoryListView: View {
     @State private var editedUserName = ""
     @State private var showReorder = false
     @State private var navigationPath = NavigationPath()
+    @State private var searchText = ""
 
     private let columns = [
         GridItem(.flexible(), spacing: AppAppearance.gridSpacing),
@@ -46,6 +47,19 @@ struct CategoryListView: View {
         }
     }
 
+    private var trimmedSearch: String {
+        searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var filteredCategories: [Category] {
+        guard !trimmedSearch.isEmpty else { return categories }
+        return categories.filter { category in
+            let name = category.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            let label = name.isEmpty ? "Untitled" : name
+            return label.localizedCaseInsensitiveContains(trimmedSearch)
+        }
+    }
+
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ScrollView {
@@ -58,9 +72,12 @@ struct CategoryListView: View {
                             description: Text("Tap Add category in the toolbar to create one.")
                         )
                         .padding(.top, 40)
+                    } else if !trimmedSearch.isEmpty, filteredCategories.isEmpty {
+                        ContentUnavailableView.search(text: trimmedSearch)
+                            .padding(.top, 40)
                     } else {
                         LazyVGrid(columns: columns, spacing: AppAppearance.gridSpacing) {
-                            ForEach(categories) { category in
+                            ForEach(filteredCategories) { category in
                                 categoryCell(category)
                             }
                         }
@@ -127,6 +144,7 @@ struct CategoryListView: View {
             } message: {
                 Text("This name appears on the home screen.")
             }
+            .searchable(text: $searchText, prompt: "Search categories")
         }
     }
 

@@ -11,12 +11,13 @@ struct TaskListView: View {
     @Environment(\.modelContext) private var modelContext
 
     @State private var filter: TaskListFilter = .all
+    @State private var searchText = ""
 
     private var baseItems: [Item] {
         category.items.sorted { $0.order < $1.order }
     }
 
-    private var filteredItems: [Item] {
+    private var itemsForSegment: [Item] {
         switch filter {
         case .all:
             return baseItems
@@ -25,6 +26,23 @@ struct TaskListView: View {
         case .pending:
             return baseItems.filter { !$0.isDone }
         }
+    }
+
+    private var trimmedSearch: String {
+        searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var displayedItems: [Item] {
+        guard !trimmedSearch.isEmpty else { return itemsForSegment }
+        return itemsForSegment.filter { item in
+            let title = item.title.trimmingCharacters(in: .whitespacesAndNewlines)
+            let label = title.isEmpty ? "Untitled task" : title
+            return label.localizedCaseInsensitiveContains(trimmedSearch)
+        }
+    }
+
+    private var canReorder: Bool {
+        filter == .all && trimmedSearch.isEmpty
     }
 
     var body: some View {
@@ -39,14 +57,14 @@ struct TaskListView: View {
                 .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
             }
 
-            if filter == .all {
-                ForEach(filteredItems) { item in
+            if canReorder {
+                ForEach(displayedItems) { item in
                     taskRow(item)
                 }
                 .onDelete(perform: deleteItems)
                 .onMove(perform: moveItemsAll)
             } else {
-                ForEach(filteredItems) { item in
+                ForEach(displayedItems) { item in
                     taskRow(item)
                 }
                 .onDelete(perform: deleteItems)
@@ -54,6 +72,7 @@ struct TaskListView: View {
         }
         .navigationTitle(category.name.isEmpty ? "Tasks" : category.name)
         .navigationBarTitleDisplayMode(.inline)
+        .searchable(text: $searchText, prompt: "Search tasks")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 NavigationLink {
@@ -63,7 +82,7 @@ struct TaskListView: View {
                 }
                 .labelStyle(.iconOnly)
             }
-            if filter == .all {
+            if canReorder {
                 ToolbarItem(placement: .topBarTrailing) {
                     EditButton()
                 }
@@ -100,7 +119,7 @@ struct TaskListView: View {
 
     private func deleteItems(at offsets: IndexSet) {
         for index in offsets {
-            let item = filteredItems[index]
+            let item = displayedItems[index]
             modelContext.delete(item)
         }
         try? modelContext.save()
