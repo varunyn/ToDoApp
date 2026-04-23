@@ -5,6 +5,7 @@
 
 import SwiftData
 import SwiftUI
+import UIKit
 import WidgetKit
 
 struct TaskListView: View {
@@ -18,13 +19,10 @@ struct TaskListView: View {
     @State private var reopenedFeedbackTrigger = 0
     @State private var editingItemID: PersistentIdentifier?
     @State private var editedTaskTitle = ""
-    @State private var refreshToken = UUID()
+    @State private var orderedItemsCache: [Item] = []
 
     private var orderedItems: [Item] {
-        _ = refreshToken
-        let descriptor = FetchDescriptor<Item>(sortBy: [SortDescriptor(\.order)])
-        let fetchedItems = (try? modelContext.fetch(descriptor)) ?? []
-        return fetchedItems.filter { $0.category?.persistentModelID == category.persistentModelID }
+        orderedItemsCache
     }
 
     private var allItemsByCompletionThenOrder: [Item] {
@@ -70,7 +68,9 @@ struct TaskListView: View {
                     }
                 }
                 .pickerStyle(.segmented)
-                .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                .padding(.horizontal, 4)
+                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                .listRowBackground(Color.clear)
             }
 
             if displayedItems.isEmpty {
@@ -117,6 +117,7 @@ struct TaskListView: View {
                 }
             }
         }
+        .listStyle(.plain)
         .navigationTitle(category.name.isEmpty ? "Tasks" : category.name)
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText, prompt: "Search tasks")
@@ -141,10 +142,14 @@ struct TaskListView: View {
         }
         .sensoryFeedback(.success, trigger: completedFeedbackTrigger)
         .sensoryFeedback(.selection, trigger: reopenedFeedbackTrigger)
+        .onAppear(perform: reloadOrderedItems)
         .onChange(of: scenePhase) {
             if scenePhase == .active {
-                refreshToken = UUID()
+                reloadOrderedItems()
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            reloadOrderedItems()
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -200,6 +205,7 @@ struct TaskListView: View {
                 .foregroundStyle(item.isDone ? .secondary : .primary)
                 .contentTransition(.interpolate)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .animation(.spring(response: 0.38, dampingFraction: 0.78), value: item.isDone)
         .contextMenu {
             Button("Edit", systemImage: "pencil") {
@@ -220,12 +226,14 @@ struct TaskListView: View {
         }
         try? modelContext.save()
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
+        reloadOrderedItems()
     }
 
     private func deleteItem(_ item: Item) {
         modelContext.delete(item)
         try? modelContext.save()
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
+        reloadOrderedItems()
     }
 
     private func beginEditing(_ item: Item) {
@@ -236,7 +244,7 @@ struct TaskListView: View {
     private func saveEditedTask() {
         guard
             let id = editingItemID,
-            let item = category.items.first(where: { $0.persistentModelID == id })
+            let item = orderedItemsCache.first(where: { $0.persistentModelID == id })
         else {
             editingItemID = nil
             return
@@ -251,6 +259,7 @@ struct TaskListView: View {
         item.title = trimmed
         try? modelContext.save()
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
+        reloadOrderedItems()
         editingItemID = nil
     }
 
@@ -262,6 +271,14 @@ struct TaskListView: View {
         }
         try? modelContext.save()
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
+        reloadOrderedItems()
+    }
+
+    private func reloadOrderedItems() {
+        modelContext.rollback()
+        let descriptor = FetchDescriptor<Item>(sortBy: [SortDescriptor(\.order)])
+        let fetchedItems = (try? modelContext.fetch(descriptor)) ?? []
+        orderedItemsCache = fetchedItems.filter { $0.category?.persistentModelID == category.persistentModelID }
     }
 }
 
