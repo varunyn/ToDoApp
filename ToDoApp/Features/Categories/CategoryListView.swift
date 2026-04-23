@@ -16,6 +16,8 @@ struct CategoryListView: View {
     @State private var selectedIDs: Set<PersistentIdentifier> = []
     @State private var showAddCategory = false
     @State private var newCategoryName = ""
+    @State private var renamingCategoryID: PersistentIdentifier?
+    @State private var renamedCategoryName = ""
     @State private var showReorder = false
     @State private var navigationPath = NavigationPath()
     @State private var searchText = ""
@@ -120,6 +122,25 @@ struct CategoryListView: View {
             } message: {
                 Text("Enter a name for the new category.")
             }
+            .alert(
+                "Rename category",
+                isPresented: Binding(
+                    get: { renamingCategoryID != nil },
+                    set: { isPresented in
+                        if !isPresented {
+                            renamingCategoryID = nil
+                        }
+                    }
+                )
+            ) {
+                TextField("Name", text: $renamedCategoryName)
+                Button("Save", action: saveRenamedCategory)
+                Button("Cancel", role: .cancel) {
+                    renamingCategoryID = nil
+                }
+            } message: {
+                Text("Enter a new category name.")
+            }
             .searchable(text: $searchText, prompt: "Search categories")
         }
     }
@@ -217,6 +238,11 @@ struct CategoryListView: View {
             }
         }
         .buttonStyle(.plain)
+        .contextMenu {
+            Button("Rename", systemImage: "pencil") {
+                beginRenaming(category)
+            }
+        }
         .accessibilityLabel(category.name.isEmpty ? "Untitled category" : category.name)
         .accessibilityHint(isSelecting ? "Toggles selection for delete" : "Opens tasks for this category")
     }
@@ -257,6 +283,32 @@ struct CategoryListView: View {
         modelContext.insert(category)
         try? modelContext.save()
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
+    }
+
+    private func beginRenaming(_ category: Category) {
+        renamingCategoryID = category.persistentModelID
+        renamedCategoryName = category.name
+    }
+
+    private func saveRenamedCategory() {
+        guard
+            let id = renamingCategoryID,
+            let category = categories.first(where: { $0.persistentModelID == id })
+        else {
+            renamingCategoryID = nil
+            return
+        }
+
+        let trimmed = renamedCategoryName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            renamingCategoryID = nil
+            return
+        }
+
+        category.name = trimmed
+        try? modelContext.save()
+        WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
+        renamingCategoryID = nil
     }
 
     private func deleteSelectedCategories() {

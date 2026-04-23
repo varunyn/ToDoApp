@@ -16,6 +16,8 @@ struct TaskListView: View {
     @State private var searchText = ""
     @State private var completedFeedbackTrigger = 0
     @State private var reopenedFeedbackTrigger = 0
+    @State private var editingItemID: PersistentIdentifier?
+    @State private var editedTaskTitle = ""
     @State private var refreshToken = UUID()
 
     private var orderedItems: [Item] {
@@ -77,6 +79,14 @@ struct TaskListView: View {
             } else if canReorder {
                 ForEach(displayedItems) { item in
                     taskRow(item)
+                        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                            Button {
+                                beginEditing(item)
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            .tint(.blue)
+                        }
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .destructive) {
                                 deleteItem(item)
@@ -89,6 +99,14 @@ struct TaskListView: View {
             } else {
                 ForEach(displayedItems) { item in
                     taskRow(item)
+                        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                            Button {
+                                beginEditing(item)
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            .tint(.blue)
+                        }
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .destructive) {
                                 deleteItem(item)
@@ -102,6 +120,25 @@ struct TaskListView: View {
         .navigationTitle(category.name.isEmpty ? "Tasks" : category.name)
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText, prompt: "Search tasks")
+        .alert(
+            "Edit task",
+            isPresented: Binding(
+                get: { editingItemID != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        editingItemID = nil
+                    }
+                }
+            )
+        ) {
+            TextField("Task title", text: $editedTaskTitle)
+            Button("Save", action: saveEditedTask)
+            Button("Cancel", role: .cancel) {
+                editingItemID = nil
+            }
+        } message: {
+            Text("Update the task title.")
+        }
         .sensoryFeedback(.success, trigger: completedFeedbackTrigger)
         .sensoryFeedback(.selection, trigger: reopenedFeedbackTrigger)
         .onChange(of: scenePhase) {
@@ -164,6 +201,11 @@ struct TaskListView: View {
                 .contentTransition(.interpolate)
         }
         .animation(.spring(response: 0.38, dampingFraction: 0.78), value: item.isDone)
+        .contextMenu {
+            Button("Edit", systemImage: "pencil") {
+                beginEditing(item)
+            }
+        }
     }
 
     private func toggleDone(_ item: Item) {
@@ -184,6 +226,32 @@ struct TaskListView: View {
         modelContext.delete(item)
         try? modelContext.save()
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
+    }
+
+    private func beginEditing(_ item: Item) {
+        editingItemID = item.persistentModelID
+        editedTaskTitle = item.title
+    }
+
+    private func saveEditedTask() {
+        guard
+            let id = editingItemID,
+            let item = category.items.first(where: { $0.persistentModelID == id })
+        else {
+            editingItemID = nil
+            return
+        }
+
+        let trimmed = editedTaskTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            editingItemID = nil
+            return
+        }
+
+        item.title = trimmed
+        try? modelContext.save()
+        WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
+        editingItemID = nil
     }
 
     private func moveItemsAll(from source: IndexSet, to destination: Int) {
