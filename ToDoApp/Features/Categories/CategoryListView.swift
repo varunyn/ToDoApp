@@ -7,28 +7,15 @@ import SwiftData
 import SwiftUI
 import WidgetKit
 
-private enum UserNameStorage {
-    static let key = "Key"
-
-    static var name: String? {
-        UserDefaults.standard.string(forKey: key)
-    }
-
-    static func setName(_ name: String) {
-        UserDefaults.standard.set(name, forKey: key)
-    }
-}
-
 struct CategoryListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Category.order) private var categories: [Category]
+    @AppStorage("Key") private var storedDisplayName = ""
 
     @State private var isSelecting = false
     @State private var selectedIDs: Set<PersistentIdentifier> = []
     @State private var showAddCategory = false
     @State private var newCategoryName = ""
-    @State private var showEditName = false
-    @State private var editedUserName = ""
     @State private var showReorder = false
     @State private var navigationPath = NavigationPath()
     @State private var searchText = ""
@@ -91,9 +78,10 @@ struct CategoryListView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Edit name", systemImage: "person.crop.circle") {
-                        editedUserName = UserNameStorage.name ?? ""
-                        showEditName = true
+                    NavigationLink {
+                        ProfileView()
+                    } label: {
+                        Label("Profile", systemImage: "person.crop.circle")
                     }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
@@ -132,15 +120,6 @@ struct CategoryListView: View {
             } message: {
                 Text("Enter a name for the new category.")
             }
-            .alert("Your name", isPresented: $showEditName) {
-                TextField("Name", text: $editedUserName)
-                Button("Save") {
-                    UserNameStorage.setName(editedUserName)
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("This name appears on the home screen.")
-            }
             .searchable(text: $searchText, prompt: "Search categories")
         }
     }
@@ -151,7 +130,7 @@ struct CategoryListView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             HStack {
-                Text(UserNameStorage.name ?? "Your list")
+                Text(displayNameLabel)
                     .font(.title2)
                     .bold()
                 Spacer()
@@ -180,6 +159,11 @@ struct CategoryListView: View {
                 .month(.abbreviated)
                 .day()
         )
+    }
+
+    private var displayNameLabel: String {
+        let trimmed = storedDisplayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? "Your list" : trimmed
     }
 
     @ViewBuilder
@@ -283,6 +267,81 @@ struct CategoryListView: View {
         try? modelContext.save()
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
         cancelSelection()
+    }
+}
+
+private struct ProfileView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Category.order) private var categories: [Category]
+
+    @AppStorage("Key") private var storedDisplayName = ""
+    @State private var showClearDataConfirmation = false
+    @State private var isClearingData = false
+
+    private var totalTaskCount: Int {
+        categories.reduce(0) { $0 + $1.items.count }
+    }
+
+    private var completedTaskCount: Int {
+        categories.reduce(0) { partial, category in
+            partial + category.items.filter(\.isDone).count
+        }
+    }
+
+    var body: some View {
+        Form {
+            Section("Profile") {
+                TextField("Display name", text: $storedDisplayName)
+                    .textInputAutocapitalization(.words)
+                    .submitLabel(.done)
+            }
+
+            Section("Stats") {
+                LabeledContent("Categories", value: "\(categories.count)")
+                LabeledContent("Tasks", value: "\(totalTaskCount)")
+                LabeledContent("Completed", value: "\(completedTaskCount)")
+            }
+
+            Section("Danger Zone") {
+                Button("Clear all data", role: .destructive) {
+                    showClearDataConfirmation = true
+                }
+                .disabled(isClearingData)
+                .accessibilityHint("Deletes all categories and tasks")
+            }
+        }
+        .navigationTitle("Profile")
+        .navigationBarTitleDisplayMode(.inline)
+        .confirmationDialog(
+            "Clear all app data?",
+            isPresented: $showClearDataConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Clear all data", role: .destructive, action: clearAllData)
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This permanently deletes all categories and tasks.")
+        }
+        .onDisappear(perform: normalizeDisplayName)
+    }
+
+    private func clearAllData() {
+        guard !isClearingData else { return }
+        isClearingData = true
+
+        for category in categories {
+            modelContext.delete(category)
+        }
+
+        try? modelContext.save()
+        WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
+        isClearingData = false
+        dismiss()
+    }
+
+    private func normalizeDisplayName() {
+        storedDisplayName = storedDisplayName.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 
