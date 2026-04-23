@@ -85,12 +85,8 @@ struct CategoryListView: View {
                 }
                 .padding()
             }
-            .navigationDestination(for: PersistentIdentifier.self) { id in
-                if let category = categories.first(where: { $0.persistentModelID == id }) {
-                    TaskListView(category: category)
-                }
-            }
-            .navigationTitle(isSelecting ? "Select Items" : "")
+            .navigationDestination(for: PersistentIdentifier.self, destination: destinationView)
+            .navigationTitle(isSelecting ? "Select Items" : "Categories")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -177,13 +173,23 @@ struct CategoryListView: View {
     }
 
     private var formattedToday: String {
-        let today = Date.now
-        let weekday = Calendar.current.component(.weekday, from: today)
-        let month = Calendar.current.component(.month, from: today)
-        let day = Calendar.current.component(.day, from: today)
-        let weekdayName = Calendar.current.weekdaySymbols[weekday - 1]
-        let monthSymbol = Calendar.current.shortMonthSymbols[month - 1]
-        return "\(weekdayName), \(monthSymbol) \(day)"
+        Date.now.formatted(
+            .dateTime
+                .weekday(.wide)
+                .month(.abbreviated)
+                .day()
+        )
+    }
+
+    @ViewBuilder
+    private func destinationView(for id: PersistentIdentifier) -> some View {
+        if let category = category(for: id) {
+            TaskListView(category: category)
+        }
+    }
+
+    private func category(for id: PersistentIdentifier) -> Category? {
+        categories.first { $0.persistentModelID == id }
     }
 
     @ViewBuilder

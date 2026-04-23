@@ -19,6 +19,8 @@ struct AddTaskView: View {
             Section {
                 TextField("Task title", text: $title)
                     .focused($isFieldFocused)
+                    .submitLabel(.done)
+                    .onSubmit(addTask)
             }
         }
         .navigationTitle("New task")

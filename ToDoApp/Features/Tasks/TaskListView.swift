@@ -12,19 +12,27 @@ struct TaskListView: View {
 
     @State private var filter: TaskListFilter = .all
     @State private var searchText = ""
+    @State private var completedFeedbackTrigger = 0
+    @State private var reopenedFeedbackTrigger = 0
 
-    private var baseItems: [Item] {
+    private var orderedItems: [Item] {
         category.items.sorted { $0.order < $1.order }
+    }
+
+    private var allItemsByCompletionThenOrder: [Item] {
+        let pending = orderedItems.filter { !$0.isDone }
+        let completed = orderedItems.filter(\.isDone)
+        return pending + completed
     }
 
     private var itemsForSegment: [Item] {
         switch filter {
         case .all:
-            return baseItems
+            return allItemsByCompletionThenOrder
         case .completed:
-            return baseItems.filter(\.isDone)
+            return orderedItems.filter(\.isDone)
         case .pending:
-            return baseItems.filter { !$0.isDone }
+            return orderedItems.filter { !$0.isDone }
         }
     }
 
@@ -57,7 +65,10 @@ struct TaskListView: View {
                 .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
             }
 
-            if canReorder {
+            if displayedItems.isEmpty {
+                taskEmptyState
+                    .listRowBackground(Color.clear)
+            } else if canReorder {
                 ForEach(displayedItems) { item in
                     taskRow(item)
                 }
@@ -73,6 +84,8 @@ struct TaskListView: View {
         .navigationTitle(category.name.isEmpty ? "Tasks" : category.name)
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText, prompt: "Search tasks")
+        .sensoryFeedback(.success, trigger: completedFeedbackTrigger)
+        .sensoryFeedback(.selection, trigger: reopenedFeedbackTrigger)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 NavigationLink {
@@ -81,12 +94,26 @@ struct TaskListView: View {
                     Label("Add task", systemImage: "plus")
                 }
                 .labelStyle(.iconOnly)
+                .accessibilityLabel("Add task")
             }
             if canReorder {
                 ToolbarItem(placement: .topBarTrailing) {
                     EditButton()
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var taskEmptyState: some View {
+        if trimmedSearch.isEmpty {
+            ContentUnavailableView(
+                "No tasks",
+                systemImage: "checklist",
+                description: Text("Tap Add task in the toolbar to create one.")
+            )
+        } else {
+            ContentUnavailableView.search(text: trimmedSearch)
         }
     }
 
@@ -99,7 +126,9 @@ struct TaskListView: View {
                 Image(systemName: item.isDone ? "checkmark.circle.fill" : "circle")
                     .font(.title2)
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(item.isDone ? .secondary : .primary)
+                    .foregroundStyle(item.isDone ? AppAppearance.accent : .primary)
+                    .contentTransition(.symbolEffect(.replace))
+                    .symbolEffect(.bounce, value: item.isDone)
                     .frame(width: AppAppearance.minimumTapTarget, height: AppAppearance.minimumTapTarget)
                     .contentShape(Rectangle())
             }
@@ -107,13 +136,23 @@ struct TaskListView: View {
             .accessibilityLabel(item.isDone ? "Mark as not done" : "Mark as done")
 
             Text(item.title.isEmpty ? "Untitled task" : item.title)
-                .strikethrough(item.isDone)
+                .strikethrough(item.isDone, color: .secondary)
                 .foregroundStyle(item.isDone ? .secondary : .primary)
+                .contentTransition(.interpolate)
         }
+        .animation(.spring(response: 0.38, dampingFraction: 0.78), value: item.isDone)
     }
 
     private func toggleDone(_ item: Item) {
-        item.isDone.toggle()
+        let wasDone = item.isDone
+        withAnimation(.spring(response: 0.38, dampingFraction: 0.72)) {
+            item.isDone.toggle()
+        }
+        if item.isDone, !wasDone {
+            completedFeedbackTrigger += 1
+        } else if !item.isDone, wasDone {
+            reopenedFeedbackTrigger += 1
+        }
         try? modelContext.save()
     }
 
@@ -126,7 +165,7 @@ struct TaskListView: View {
     }
 
     private func moveItemsAll(from source: IndexSet, to destination: Int) {
-        var items = baseItems
+        var items = displayedItems
         items.move(fromOffsets: source, toOffset: destination)
         for (index, item) in items.enumerated() {
             item.order = index
