@@ -5,18 +5,24 @@
 
 import SwiftData
 import SwiftUI
+import WidgetKit
 
 struct TaskListView: View {
     @Bindable var category: Category
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var filter: TaskListFilter = .all
     @State private var searchText = ""
     @State private var completedFeedbackTrigger = 0
     @State private var reopenedFeedbackTrigger = 0
+    @State private var refreshToken = UUID()
 
     private var orderedItems: [Item] {
-        category.items.sorted { $0.order < $1.order }
+        _ = refreshToken
+        let descriptor = FetchDescriptor<Item>(sortBy: [SortDescriptor(\.order)])
+        let fetchedItems = (try? modelContext.fetch(descriptor)) ?? []
+        return fetchedItems.filter { $0.category?.persistentModelID == category.persistentModelID }
     }
 
     private var allItemsByCompletionThenOrder: [Item] {
@@ -71,14 +77,26 @@ struct TaskListView: View {
             } else if canReorder {
                 ForEach(displayedItems) { item in
                     taskRow(item)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                deleteItem(item)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                 }
-                .onDelete(perform: deleteItems)
                 .onMove(perform: moveItemsAll)
             } else {
                 ForEach(displayedItems) { item in
                     taskRow(item)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                deleteItem(item)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                 }
-                .onDelete(perform: deleteItems)
             }
         }
         .navigationTitle(category.name.isEmpty ? "Tasks" : category.name)
@@ -86,6 +104,11 @@ struct TaskListView: View {
         .searchable(text: $searchText, prompt: "Search tasks")
         .sensoryFeedback(.success, trigger: completedFeedbackTrigger)
         .sensoryFeedback(.selection, trigger: reopenedFeedbackTrigger)
+        .onChange(of: scenePhase) {
+            if scenePhase == .active {
+                refreshToken = UUID()
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 NavigationLink {
@@ -154,14 +177,13 @@ struct TaskListView: View {
             reopenedFeedbackTrigger += 1
         }
         try? modelContext.save()
+        WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
     }
 
-    private func deleteItems(at offsets: IndexSet) {
-        for index in offsets {
-            let item = displayedItems[index]
-            modelContext.delete(item)
-        }
+    private func deleteItem(_ item: Item) {
+        modelContext.delete(item)
         try? modelContext.save()
+        WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
     }
 
     private func moveItemsAll(from source: IndexSet, to destination: Int) {
@@ -171,6 +193,7 @@ struct TaskListView: View {
             item.order = index
         }
         try? modelContext.save()
+        WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
     }
 }
 

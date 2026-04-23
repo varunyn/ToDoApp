@@ -5,6 +5,7 @@
 
 import SwiftData
 import SwiftUI
+import WidgetKit
 
 private enum UserNameStorage {
     static let key = "Key"
@@ -271,6 +272,7 @@ struct CategoryListView: View {
         let category = Category(name: trimmed, order: nextOrder)
         modelContext.insert(category)
         try? modelContext.save()
+        WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
     }
 
     private func deleteSelectedCategories() {
@@ -279,6 +281,7 @@ struct CategoryListView: View {
             modelContext.delete(category)
         }
         try? modelContext.save()
+        WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
         cancelSelection()
     }
 }

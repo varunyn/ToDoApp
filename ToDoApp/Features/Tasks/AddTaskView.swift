@@ -5,6 +5,7 @@
 
 import SwiftData
 import SwiftUI
+import WidgetKit
 
 struct AddTaskView: View {
     @Bindable var category: Category
@@ -43,6 +44,7 @@ struct AddTaskView: View {
         let item = Item(title: trimmed, isDone: false, order: nextOrder, category: category)
         modelContext.insert(item)
         try? modelContext.save()
+        WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
         dismiss()
     }
 }
