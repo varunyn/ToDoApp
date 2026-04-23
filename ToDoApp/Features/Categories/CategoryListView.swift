@@ -54,7 +54,7 @@ struct CategoryListView: View {
         NavigationStack(path: $navigationPath) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    header
+                    dashboardHero
                     if categories.isEmpty {
                         ContentUnavailableView(
                             "No categories",
@@ -67,8 +67,8 @@ struct CategoryListView: View {
                             .padding(.top, 40)
                     } else {
                         LazyVGrid(columns: columns, spacing: AppAppearance.gridSpacing) {
-                            ForEach(filteredCategories) { category in
-                                categoryCell(category)
+                            ForEach(Array(filteredCategories.enumerated()), id: \.element.persistentModelID) { index, category in
+                                categoryCell(category, index: index)
                             }
                         }
                     }
@@ -173,6 +173,44 @@ struct CategoryListView: View {
         }
     }
 
+    private var dashboardHero: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(formattedToday)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(displayNameLabel)
+                .font(.title3.bold())
+
+            LazyVGrid(
+                columns: [
+                    GridItem(.flexible(), spacing: 10, alignment: .leading),
+                    GridItem(.flexible(), spacing: 10, alignment: .leading),
+                ],
+                alignment: .leading,
+                spacing: 8
+            ) {
+                Label("\(totalTaskCount) Tasks", systemImage: "checklist")
+                Label("\(completedTaskCount) Completed", systemImage: "checkmark.circle.fill")
+                Label("\(categories.count) Categories", systemImage: "square.grid.2x2.fill")
+            }
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [Color(.systemGray6), Color(.systemGray5).opacity(0.7)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+        )
+    }
+
     private var formattedToday: String {
         Date.now.formatted(
             .dateTime
@@ -199,8 +237,9 @@ struct CategoryListView: View {
     }
 
     @ViewBuilder
-    private func categoryCell(_ category: Category) -> some View {
+    private func categoryCell(_ category: Category, index: Int) -> some View {
         let isSelected = selectedIDs.contains(category.persistentModelID)
+        let progress = categoryProgress(for: category)
         Button {
             if isSelecting {
                 toggleSelection(category)
@@ -209,22 +248,49 @@ struct CategoryListView: View {
             }
         } label: {
             ZStack(alignment: .bottomTrailing) {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 10) {
                     Text(category.name.isEmpty ? "Untitled" : category.name)
-                        .font(.headline)
+                        .font(.title3.bold())
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.leading)
-                    Text("^[\(category.items.count) task](inflect: true)")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    HStack {
+                        Spacer(minLength: 0)
+                        ZStack {
+                            Circle()
+                                .stroke(.white.opacity(0.35), lineWidth: 8)
+                            Circle()
+                                .trim(from: 0, to: progress)
+                                .stroke(.white, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                                .rotationEffect(.degrees(-90))
+                            Image(systemName: "briefcase.fill")
+                                .font(.title3)
+                                .foregroundStyle(.white.opacity(0.9))
+                        }
+                        .frame(width: 74, height: 74)
+                        Spacer(minLength: 0)
+                    }
+
+                    HStack {
+                        Label(
+                            "\(categoryCompletedCount(for: category))/\(max(category.items.count, 1))",
+                            systemImage: "gearshape.fill"
+                        )
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.white.opacity(0.9))
+                        Spacer()
+                        Text("Lv.\(categoryLevel(for: category))")
+                            .font(.caption.bold())
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(.ultraThinMaterial, in: Capsule())
+                    }
                     Spacer(minLength: 0)
                 }
                 .frame(maxWidth: .infinity, minHeight: AppAppearance.cardMinHeight, alignment: .topLeading)
                 .padding()
                 .background {
                     RoundedRectangle(cornerRadius: AppAppearance.cardCornerRadius, style: .continuous)
-                        .fill(.regularMaterial)
-                        .strokeBorder(AppAppearance.accent.opacity(0.25), lineWidth: 1)
+                        .fill(categoryGradient(at: index))
                 }
 
                 if isSelecting, isSelected {
@@ -283,6 +349,30 @@ struct CategoryListView: View {
         modelContext.insert(category)
         try? modelContext.save()
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
+    }
+
+    private func categoryCompletedCount(for category: Category) -> Int {
+        category.items.filter(\.isDone).count
+    }
+
+    private func categoryProgress(for category: Category) -> CGFloat {
+        guard !category.items.isEmpty else { return 0 }
+        return CGFloat(categoryCompletedCount(for: category)) / CGFloat(category.items.count)
+    }
+
+    private func categoryLevel(for category: Category) -> Int {
+        (categoryCompletedCount(for: category) / 5) + 1
+    }
+
+    private func categoryGradient(at index: Int) -> LinearGradient {
+        let palette: [[Color]] = [
+            [Color(red: 1.0, green: 0.74, blue: 0.68), Color(red: 0.98, green: 0.56, blue: 0.52)],
+            [Color(red: 0.50, green: 0.90, blue: 1.0), Color(red: 0.23, green: 0.73, blue: 0.98)],
+            [Color(red: 0.84, green: 1.0, blue: 0.53), Color(red: 0.69, green: 0.92, blue: 0.27)],
+            [Color(red: 0.78, green: 0.61, blue: 1.0), Color(red: 0.60, green: 0.42, blue: 0.96)],
+        ]
+        let colors = palette[index % palette.count]
+        return LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
     private func beginRenaming(_ category: Category) {
