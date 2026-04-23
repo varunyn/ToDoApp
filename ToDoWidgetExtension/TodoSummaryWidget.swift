@@ -3,6 +3,7 @@
 //  ToDoWidgetExtension
 //
 
+import AppIntents
 import SwiftData
 import SwiftUI
 import WidgetKit
@@ -11,7 +12,12 @@ struct TodoSummaryEntry: TimelineEntry {
     let date: Date
     let openTaskCount: Int
     let categoryCount: Int
-    let pendingTitles: [String]
+    let pendingTasks: [WidgetPendingTask]
+}
+
+struct WidgetPendingTask: Hashable {
+    let widgetID: UUID
+    let title: String
 }
 
 struct TodoSummaryProvider: TimelineProvider {
@@ -20,7 +26,11 @@ struct TodoSummaryProvider: TimelineProvider {
             date: .now,
             openTaskCount: 3,
             categoryCount: 2,
-            pendingTitles: ["Buy milk", "Call back", "Review notes"]
+            pendingTasks: [
+                WidgetPendingTask(widgetID: UUID(), title: "Buy milk"),
+                WidgetPendingTask(widgetID: UUID(), title: "Call back"),
+                WidgetPendingTask(widgetID: UUID(), title: "Review notes"),
+            ]
         )
     }
 
@@ -36,22 +46,57 @@ struct TodoSummaryProvider: TimelineProvider {
 
     private func loadEntry() -> TodoSummaryEntry {
         guard let container = try? SharedModelContainer.make() else {
-            return TodoSummaryEntry(date: .now, openTaskCount: 0, categoryCount: 0, pendingTitles: [])
+            return TodoSummaryEntry(date: .now, openTaskCount: 0, categoryCount: 0, pendingTasks: [])
         }
         let context = ModelContext(container)
         let openItems = (try? context.fetch(FetchDescriptor<Item>(predicate: #Predicate { !$0.isDone }))) ?? []
         let categories = (try? context.fetch(FetchDescriptor<Category>())) ?? []
         let sorted = openItems.sorted { $0.order < $1.order }
-        let titles = sorted.prefix(5).map { item in
+        let tasks = sorted.prefix(5).map { item in
             let t = item.title.trimmingCharacters(in: .whitespacesAndNewlines)
-            return t.isEmpty ? "Untitled task" : t
+            return WidgetPendingTask(
+                widgetID: item.widgetID,
+                title: t.isEmpty ? "Untitled task" : t
+            )
         }
         return TodoSummaryEntry(
             date: .now,
             openTaskCount: openItems.count,
             categoryCount: categories.count,
-            pendingTitles: Array(titles)
+            pendingTasks: Array(tasks)
         )
+    }
+}
+
+struct ToggleTaskDoneIntent: AppIntent {
+    static let title: LocalizedStringResource = "Toggle Task Done"
+
+    @Parameter(title: "Task ID")
+    var taskID: String
+
+    init() {}
+
+    init(taskID: String) {
+        self.taskID = taskID
+    }
+
+    func perform() async throws -> some IntentResult {
+        guard
+            let uuid = UUID(uuidString: taskID),
+            let container = try? SharedModelContainer.make()
+        else {
+            return .result()
+        }
+
+        let context = ModelContext(container)
+        let descriptor = FetchDescriptor<Item>(predicate: #Predicate { $0.widgetID == uuid })
+        if let item = try? context.fetch(descriptor).first {
+            item.isDone.toggle()
+            try? context.save()
+            WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
+        }
+
+        return .result()
     }
 }
 
@@ -102,15 +147,23 @@ struct TodoSummaryWidgetEntryView: View {
                 Text("Next")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                if entry.pendingTitles.isEmpty {
+                if entry.pendingTasks.isEmpty {
                     Text("All caught up")
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                 } else {
-                    ForEach(Array(entry.pendingTitles.enumerated()), id: \.offset) { _, title in
-                        Text(title)
-                            .font(.caption)
-                            .lineLimit(1)
+                    ForEach(entry.pendingTasks, id: \.widgetID) { task in
+                        Button(intent: ToggleTaskDoneIntent(taskID: task.widgetID.uuidString)) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "circle")
+                                    .font(.caption2)
+                                Text(task.title)
+                                    .font(.caption)
+                                    .lineLimit(1)
+                                Spacer(minLength: 0)
+                            }
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -137,5 +190,13 @@ struct TodoSummaryWidget: Widget {
 #Preview(as: .systemSmall) {
     TodoSummaryWidget()
 } timeline: {
-    TodoSummaryEntry(date: .now, openTaskCount: 4, categoryCount: 2, pendingTitles: ["One", "Two"])
+    TodoSummaryEntry(
+        date: .now,
+        openTaskCount: 4,
+        categoryCount: 2,
+        pendingTasks: [
+            WidgetPendingTask(widgetID: UUID(), title: "One"),
+            WidgetPendingTask(widgetID: UUID(), title: "Two"),
+        ]
+    )
 }
