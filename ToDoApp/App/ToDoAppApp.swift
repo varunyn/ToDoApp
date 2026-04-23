@@ -11,11 +11,7 @@ struct ToDoAppApp: App {
     private let modelContainer: ModelContainer
 
     init() {
-        do {
-            modelContainer = try SharedModelContainer.make()
-        } catch {
-            fatalError("Could not open shared SwiftData store: \(error.localizedDescription)")
-        }
+        modelContainer = Self.makePreferredContainer()
     }
 
     var body: some Scene {
@@ -24,5 +20,15 @@ struct ToDoAppApp: App {
                 .tint(AppAppearance.accent)
         }
         .modelContainer(modelContainer)
+    }
+
+    private static func makePreferredContainer() -> ModelContainer {
+        if let shared = try? SharedModelContainer.makeRecoveringShared() {
+            return shared
+        }
+        if let inMemory = try? SharedModelContainer.makeInMemory() {
+            return inMemory
+        }
+        fatalError("Could not open any SwiftData store configuration.")
     }
 }
