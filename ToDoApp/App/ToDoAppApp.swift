@@ -26,6 +26,9 @@ struct ToDoAppApp: App {
         if let shared = try? SharedModelContainer.makeRecoveringShared() {
             return shared
         }
+        if let sharedLocalOnly = try? SharedModelContainer.makeSharedWithoutCloudKit() {
+            return sharedLocalOnly
+        }
         if let inMemory = try? SharedModelContainer.makeInMemory() {
             return inMemory
         }

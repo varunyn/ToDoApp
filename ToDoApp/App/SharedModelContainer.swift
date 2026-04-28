@@ -15,7 +15,18 @@ enum SharedModelContainer {
         let configuration = ModelConfiguration(
             sharedConfigurationName,
             schema: schema,
-            groupContainer: .identifier(AppGroup.identifier)
+            groupContainer: .identifier(AppGroup.identifier),
+            cloudKitDatabase: .automatic
+        )
+        return try ModelContainer(for: schema, configurations: [configuration])
+    }
+
+    static func makeSharedWithoutCloudKit() throws -> ModelContainer {
+        let configuration = ModelConfiguration(
+            sharedConfigurationName,
+            schema: schema,
+            groupContainer: .identifier(AppGroup.identifier),
+            cloudKitDatabase: .none
         )
         return try ModelContainer(for: schema, configurations: [configuration])
     }

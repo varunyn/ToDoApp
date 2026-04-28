@@ -12,3 +12,8 @@ WIDGET_BUNDLE_IDENTIFIER = $(MAIN_BUNDLE_IDENTIFIER).ToDoWidgetExtension
 //   3) Exactly equal to APP_GROUP_IDENTIFIER here and in Signing & Capabilities
 // If provisioning fails, fix the portal + capabilities first; the string alone is not enough.
 APP_GROUP_IDENTIFIER = group.com.example.ToDoApp
+
+// --- iCloud / CloudKit ---
+// iCloud container used by SwiftData CloudKit sync.
+// Create this container in Apple Developer and attach it to the app + widget capabilities.
+ICLOUD_CONTAINER_IDENTIFIER = iCloud.com.example.ToDoApp

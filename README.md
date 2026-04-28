@@ -57,4 +57,5 @@ For running on a **physical device**, set your **Team** and **Bundle Identifier*
 
 **Data**
 
-- Persisted on device with **SwiftData** (no remote sync in this project).
+- Persisted with **SwiftData** in the shared app-group store.
+- Optional **CloudKit sync** is supported when iCloud capability and the configured container are enabled in signing.
