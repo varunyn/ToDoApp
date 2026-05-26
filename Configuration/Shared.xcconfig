@@ -1,13 +1,13 @@
-// --- Bundle IDs (must match App IDs in Apple Developer → Identifiers) ---
-// Main iOS app:
+// --- Bundle IDs (must match App IDs in Apple Developer -> Identifiers) ---
+// Main iOS app. Override in gitignored Local.xcconfig for your Apple account.
 MAIN_BUNDLE_IDENTIFIER = com.example.ToDoApp
 // Widget extension (must stay the main id + this suffix):
 WIDGET_BUNDLE_IDENTIFIER = $(MAIN_BUNDLE_IDENTIFIER).ToDoWidgetExtension
 
 // --- App Group (separate from bundle ID) ---
-// An App Group is a named “shared container” Apple uses so the app and widget can read the same
+// An App Group is a named shared container Apple uses so the app and widget can read the same
 // SwiftData store. It is NOT your bundle id. It must be:
-//   1) Created under Identifiers → App Groups (e.g. group.com.example.ToDoApp)
+//   1) Created under Identifiers -> App Groups
 //   2) Linked to BOTH App IDs (main app + widget) with the App Groups capability
 //   3) Exactly equal to APP_GROUP_IDENTIFIER here and in Signing & Capabilities
 // If provisioning fails, fix the portal + capabilities first; the string alone is not enough.
@@ -17,3 +17,7 @@ APP_GROUP_IDENTIFIER = group.com.example.ToDoApp
 // iCloud container used by SwiftData CloudKit sync.
 // Create this container in Apple Developer and attach it to the app + widget capabilities.
 ICLOUD_CONTAINER_IDENTIFIER = iCloud.com.example.ToDoApp
+
+// --- Signing ---
+// Override in Local.xcconfig. Leave blank for unsigned simulator-only workflows.
+DEVELOPMENT_TEAM_ID =

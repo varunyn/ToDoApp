@@ -43,19 +43,19 @@ For running on a **physical device**, set your **Team** and **Bundle Identifier*
 
 **Categories**
 
-- Two-column grid with category name and task count  
-- Add categories via alert; **Select** for multi-select delete; **Reorder** opens a reorder sheet  
-- Header shows the current date and optional display name (stored in `UserDefaults`, key `Key`)  
-- Toolbar actions: edit name, select mode, reorder, add category  
+- Two-column grid with category name and task count
+- Add categories via alert; **Select** for multi-select delete; **Reorder** opens a reorder sheet
+- Header shows the current date and optional display name (stored in `UserDefaults`, key `Key`)
+- Toolbar actions: edit name, select mode, reorder, add category
 
 **Tasks**
 
-- Segmented filter: **All** · **Completed** · **Pending**  
-- Toggle completion with SF Symbols; strikethrough when completed  
-- Swipe to delete; with **All** selected, use **Edit** to reorder rows  
-- **+** navigates to add a new task  
+- Segmented filter: **All** · **Completed** · **Pending**
+- Toggle completion with SF Symbols; strikethrough when completed
+- Swipe to delete; with **All** selected, use **Edit** to reorder rows
+- **+** navigates to add a new task
 
 **Data**
 
 - Persisted with **SwiftData** in the shared app-group store.
-- Optional **CloudKit sync** is supported when iCloud capability and the configured container are enabled in signing.
+- Optional **CloudKit sync** can be enabled for paid Apple Developer teams; personal development teams do not support the iCloud capability.
