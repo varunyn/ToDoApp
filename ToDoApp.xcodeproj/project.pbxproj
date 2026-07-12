@@ -15,11 +15,16 @@
 		D2A000000000000000000002 /* CategoryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000002 /* CategoryListView.swift */; };
 		D2A000000000000000000003 /* CategoryReorderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000003 /* CategoryReorderView.swift */; };
 		D2A000000000000000000004 /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000004 /* TaskListView.swift */; };
-		D2A000000000000000000005 /* AddTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000005 /* AddTaskView.swift */; };
 		D2A000000000000000000006 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000006 /* AppAppearance.swift */; };
 		D2A000000000000000000007 /* TaskListFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000007 /* TaskListFilter.swift */; };
 		D2A000000000000000000008 /* AppGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000008 /* AppGroup.swift */; };
 		D2A000000000000000000009 /* SharedModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000009 /* SharedModelContainer.swift */; };
+		D2A00000000000000000000A /* EditTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A00000000000000000000B /* EditTaskView.swift */; };
+		D2A00000000000000000000B /* TaskPriority.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A00000000000000000000C /* TaskPriority.swift */; };
+		D2A00000000000000000000C /* CategoryCustomizationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A00000000000000000000D /* CategoryCustomizationView.swift */; };
+		D2A00000000000000000000D /* CategoryCustomization.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A00000000000000000000E /* CategoryCustomization.swift */; };
+		D2A00000000000000000000E /* HomeHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A00000000000000000000F /* HomeHeaderView.swift */; };
+		D2A00000000000000000000F /* QuickAddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000010 /* QuickAddView.swift */; };
 		F70000000000000000000001 /* ToDoWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F70000000000000000000002 /* ToDoWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		F70000000000000000000003 /* ToDoWidgetExtensionBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70000000000000000000004 /* ToDoWidgetExtensionBundle.swift */; };
 		F70000000000000000000005 /* TodoSummaryWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70000000000000000000006 /* TodoSummaryWidget.swift */; };
@@ -64,11 +69,16 @@
 		D1A000000000000000000002 /* CategoryListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryListView.swift; sourceTree = "<group>"; };
 		D1A000000000000000000003 /* CategoryReorderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryReorderView.swift; sourceTree = "<group>"; };
 		D1A000000000000000000004 /* TaskListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskListView.swift; sourceTree = "<group>"; };
-		D1A000000000000000000005 /* AddTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTaskView.swift; sourceTree = "<group>"; };
 		D1A000000000000000000006 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
 		D1A000000000000000000007 /* TaskListFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskListFilter.swift; sourceTree = "<group>"; };
 		D1A000000000000000000008 /* AppGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroup.swift; sourceTree = "<group>"; };
 		D1A000000000000000000009 /* SharedModelContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedModelContainer.swift; sourceTree = "<group>"; };
+		D1A00000000000000000000B /* EditTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditTaskView.swift; sourceTree = "<group>"; };
+		D1A00000000000000000000C /* TaskPriority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskPriority.swift; sourceTree = "<group>"; };
+		D1A00000000000000000000D /* CategoryCustomizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryCustomizationView.swift; sourceTree = "<group>"; };
+		D1A00000000000000000000E /* CategoryCustomization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryCustomization.swift; sourceTree = "<group>"; };
+		D1A00000000000000000000F /* HomeHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeHeaderView.swift; sourceTree = "<group>"; };
+		D1A000000000000000000010 /* QuickAddView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickAddView.swift; sourceTree = "<group>"; };
 		D1A00000000000000000000A /* ToDoApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ToDoApp.entitlements; sourceTree = "<group>"; };
 		F70000000000000000000002 /* ToDoWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ToDoWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		F70000000000000000000004 /* ToDoWidgetExtensionBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToDoWidgetExtensionBundle.swift; sourceTree = "<group>"; };
@@ -155,6 +165,9 @@
 			children = (
 				D1A000000000000000000002 /* CategoryListView.swift */,
 				D1A000000000000000000003 /* CategoryReorderView.swift */,
+				D1A00000000000000000000D /* CategoryCustomizationView.swift */,
+				D1A00000000000000000000E /* CategoryCustomization.swift */,
+				D1A00000000000000000000F /* HomeHeaderView.swift */,
 			);
 			path = Categories;
 			sourceTree = "<group>";
@@ -164,7 +177,9 @@
 			children = (
 				D1A000000000000000000007 /* TaskListFilter.swift */,
 				D1A000000000000000000004 /* TaskListView.swift */,
-				D1A000000000000000000005 /* AddTaskView.swift */,
+				D1A00000000000000000000B /* EditTaskView.swift */,
+				D1A00000000000000000000C /* TaskPriority.swift */,
+				D1A000000000000000000010 /* QuickAddView.swift */,
 			);
 			path = Tasks;
 			sourceTree = "<group>";
@@ -314,7 +329,12 @@
 				D2A000000000000000000006 /* AppAppearance.swift in Sources */,
 				D2A000000000000000000007 /* TaskListFilter.swift in Sources */,
 				D2A000000000000000000004 /* TaskListView.swift in Sources */,
-				D2A000000000000000000005 /* AddTaskView.swift in Sources */,
+				D2A00000000000000000000A /* EditTaskView.swift in Sources */,
+				D2A00000000000000000000B /* TaskPriority.swift in Sources */,
+				D2A00000000000000000000C /* CategoryCustomizationView.swift in Sources */,
+				D2A00000000000000000000D /* CategoryCustomization.swift in Sources */,
+				D2A00000000000000000000E /* HomeHeaderView.swift in Sources */,
+				D2A00000000000000000000F /* QuickAddView.swift in Sources */,
 				01CCC88C200E7F840037B778 /* Item.swift in Sources */,
 				01CCC88E200E80050037B778 /* Category.swift in Sources */,
 				D2A000000000000000000008 /* AppGroup.swift in Sources */,
@@ -330,6 +350,8 @@
 				F70000000000000000000005 /* TodoSummaryWidget.swift in Sources */,
 				F70000000000000000000007 /* Item.swift in Sources */,
 				F70000000000000000000008 /* Category.swift in Sources */,
+				D2A00000000000000000000B /* TaskPriority.swift in Sources */,
+				D2A00000000000000000000D /* CategoryCustomization.swift in Sources */,
 				F70000000000000000000009 /* AppGroup.swift in Sources */,
 				F7000000000000000000000A /* SharedModelContainer.swift in Sources */,
 			);

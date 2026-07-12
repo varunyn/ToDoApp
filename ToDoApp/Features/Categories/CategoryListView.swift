@@ -19,6 +19,7 @@ struct CategoryListView: View {
     @State private var renamingCategoryID: PersistentIdentifier?
     @State private var renamedCategoryName = ""
     @State private var showReorder = false
+    @State private var customizingCategory: Category?
     @State private var navigationPath = NavigationPath()
     @State private var searchText = ""
 
@@ -67,8 +68,8 @@ struct CategoryListView: View {
                             .padding(.top, 40)
                     } else {
                         LazyVGrid(columns: columns, spacing: AppAppearance.gridSpacing) {
-                            ForEach(Array(filteredCategories.enumerated()), id: \.element.persistentModelID) { index, category in
-                                categoryCell(category, index: index)
+                            ForEach(filteredCategories) { category in
+                                categoryCell(category)
                             }
                         }
                     }
@@ -110,10 +111,17 @@ struct CategoryListView: View {
             .safeAreaInset(edge: .bottom) {
                 if isSelecting {
                     selectionFooter
+                } else {
+                    QuickAddView(defaultCategory: nil)
                 }
             }
             .sheet(isPresented: $showReorder) {
                 CategoryReorderView()
+            }
+            .sheet(item: $customizingCategory) { category in
+                NavigationStack {
+                    CategoryCustomizationView(category: category)
+                }
             }
             .alert("Category", isPresented: $showAddCategory) {
                 TextField("Name", text: $newCategoryName)
@@ -145,78 +153,11 @@ struct CategoryListView: View {
         }
     }
 
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(formattedToday)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            HStack {
-                Text(displayNameLabel)
-                    .font(.title2)
-                    .bold()
-                Spacer()
-            }
-            HStack(spacing: 24) {
-                Label {
-                    Text("^[\(totalTaskCount) task](inflect: true)")
-                } icon: {
-                    Image(systemName: "list.bullet")
-                }
-                Label {
-                    Text(verbatim: "\(completedTaskCount) completed")
-                } icon: {
-                    Image(systemName: "checkmark.circle")
-                }
-            }
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-        }
-    }
-
     private var dashboardHero: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(formattedToday)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Text(displayNameLabel)
-                .font(.title3.bold())
-
-            LazyVGrid(
-                columns: [
-                    GridItem(.flexible(), spacing: 10, alignment: .leading),
-                    GridItem(.flexible(), spacing: 10, alignment: .leading),
-                ],
-                alignment: .leading,
-                spacing: 8
-            ) {
-                Label("\(totalTaskCount) Tasks", systemImage: "checklist")
-                Label("\(completedTaskCount) Completed", systemImage: "checkmark.circle.fill")
-                Label("\(categories.count) Categories", systemImage: "square.grid.2x2.fill")
-            }
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [Color(.systemGray6), Color(.systemGray5).opacity(0.7)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-        )
-    }
-
-    private var formattedToday: String {
-        Date.now.formatted(
-            .dateTime
-                .weekday(.wide)
-                .month(.abbreviated)
-                .day()
+        HomeHeaderView(
+            displayName: displayNameLabel,
+            totalTaskCount: totalTaskCount,
+            completedTaskCount: completedTaskCount
         )
     }
 
@@ -237,7 +178,7 @@ struct CategoryListView: View {
     }
 
     @ViewBuilder
-    private func categoryCell(_ category: Category, index: Int) -> some View {
+    private func categoryCell(_ category: Category) -> some View {
         let isSelected = selectedIDs.contains(category.persistentModelID)
         let progress = categoryProgress(for: category)
         Button {
@@ -262,7 +203,7 @@ struct CategoryListView: View {
                                 .trim(from: 0, to: progress)
                                 .stroke(.white, style: StrokeStyle(lineWidth: 8, lineCap: .round))
                                 .rotationEffect(.degrees(-90))
-                            Image(systemName: "briefcase.fill")
+                            Image(systemName: category.icon.rawValue)
                                 .font(.title3)
                                 .foregroundStyle(.white.opacity(0.9))
                         }
@@ -271,10 +212,7 @@ struct CategoryListView: View {
                     }
 
                     HStack {
-                        Label(
-                            "\(categoryCompletedCount(for: category))/\(max(category.items.count, 1))",
-                            systemImage: "gearshape.fill"
-                        )
+                        Label(categoryProgressLabel(for: category), systemImage: "checkmark.circle.fill")
                         .font(.subheadline.bold())
                         .foregroundStyle(.white.opacity(0.9))
                         Spacer()
@@ -290,7 +228,7 @@ struct CategoryListView: View {
                 .padding()
                 .background {
                     RoundedRectangle(cornerRadius: AppAppearance.cardCornerRadius, style: .continuous)
-                        .fill(categoryGradient(at: index))
+                        .fill(categoryGradient(for: category))
                 }
 
                 if isSelecting, isSelected {
@@ -307,6 +245,9 @@ struct CategoryListView: View {
         .contextMenu {
             Button("Rename", systemImage: "pencil") {
                 beginRenaming(category)
+            }
+            Button("Customize", systemImage: "paintpalette") {
+                customizingCategory = category
             }
         }
         .accessibilityLabel(category.name.isEmpty ? "Untitled category" : category.name)
@@ -356,23 +297,26 @@ struct CategoryListView: View {
     }
 
     private func categoryProgress(for category: Category) -> CGFloat {
-        guard !category.items.isEmpty else { return 0 }
-        return CGFloat(categoryCompletedCount(for: category)) / CGFloat(category.items.count)
+        let denominator = category.goal ?? category.items.count
+        guard denominator > 0 else { return 0 }
+        return min(CGFloat(categoryCompletedCount(for: category)) / CGFloat(denominator), 1)
+    }
+
+    private func categoryProgressLabel(for category: Category) -> String {
+        let target = category.goal ?? max(category.items.count, 1)
+        return "\(categoryCompletedCount(for: category))/\(target)"
     }
 
     private func categoryLevel(for category: Category) -> Int {
         (categoryCompletedCount(for: category) / 5) + 1
     }
 
-    private func categoryGradient(at index: Int) -> LinearGradient {
-        let palette: [[Color]] = [
-            [Color(red: 1.0, green: 0.74, blue: 0.68), Color(red: 0.98, green: 0.56, blue: 0.52)],
-            [Color(red: 0.50, green: 0.90, blue: 1.0), Color(red: 0.23, green: 0.73, blue: 0.98)],
-            [Color(red: 0.84, green: 1.0, blue: 0.53), Color(red: 0.69, green: 0.92, blue: 0.27)],
-            [Color(red: 0.78, green: 0.61, blue: 1.0), Color(red: 0.60, green: 0.42, blue: 0.96)],
-        ]
-        let colors = palette[index % palette.count]
-        return LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)
+    private func categoryGradient(for category: Category) -> LinearGradient {
+        LinearGradient(
+            colors: category.color.colors,
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 
     private func beginRenaming(_ category: Category) {
