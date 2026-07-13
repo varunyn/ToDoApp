@@ -55,7 +55,7 @@ struct HomeHeaderView: View {
                     .font(.title3)
                     .foregroundStyle(AppAppearance.accent)
                     .frame(width: 42, height: 42)
-                    .background(.white.opacity(0.65), in: Circle())
+                    .background(AppAppearance.softHighlight, in: Circle())
                     .accessibilityHidden(true)
             }
 
@@ -104,6 +104,6 @@ struct HomeHeaderView: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 7)
-        .background(.white.opacity(0.55), in: Capsule())
+        .background(AppAppearance.softHighlight, in: Capsule())
     }
 }
