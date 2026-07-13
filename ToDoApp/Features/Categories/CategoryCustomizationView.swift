@@ -20,6 +20,11 @@ struct CategoryCustomizationView: View {
 
     var body: some View {
         Form {
+            Section("Category") {
+                TextField("Name", text: $category.name)
+                    .textInputAutocapitalization(.words)
+            }
+
             Section("Icon") {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 52))], spacing: 12) {
                     ForEach(CategoryIcon.allCases) { icon in
@@ -98,7 +103,7 @@ struct CategoryCustomizationView: View {
                 }
             }
         }
-        .navigationTitle("Customize category")
+        .navigationTitle("Edit category")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
