@@ -22,88 +22,61 @@ struct HomeHeaderView: View {
         }
     }
 
-    private var message: String {
-        if totalTaskCount == 0 {
-            return "A little space for something new."
-        }
-        if pendingTaskCount == 0 {
-            return "Everything is wrapped up for now."
-        }
-        if completedTaskCount == 0 {
-            return "Start with one small thing."
-        }
-        return "You’re making good progress."
-    }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(Date.now.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .textCase(.uppercase)
-                        .tracking(1.1)
-                    Text(greeting)
-                        .font(.title2.weight(.bold))
-                        .foregroundStyle(.primary)
-                }
-
-                Spacer(minLength: 12)
-
-                Image(systemName: pendingTaskCount == 0 ? "sparkles" : "sun.max.fill")
-                    .font(.title3)
-                    .foregroundStyle(AppAppearance.accent)
-                    .frame(width: 42, height: 42)
-                    .background(AppAppearance.softHighlight, in: Circle())
-                    .accessibilityHidden(true)
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(Date.now.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
+                    .tracking(1.1)
+                Text(greeting)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
             }
 
-            Text(message)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            Spacer(minLength: 8)
 
-            HStack(spacing: 8) {
+            HStack(spacing: 12) {
                 headerStat(value: pendingTaskCount, label: "to do", tint: AppAppearance.accent)
                 headerStat(value: completedTaskCount, label: "done", tint: .secondary)
-                Spacer(minLength: 0)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(18)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
         .background {
             ZStack(alignment: .topTrailing) {
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
                     .fill(
                         LinearGradient(
-                            colors: [Color(.systemGray6), AppAppearance.accent.opacity(0.13)],
+                            colors: [Color(.systemGray6), AppAppearance.accent.opacity(0.1)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
 
                 Circle()
-                    .fill(AppAppearance.accent.opacity(0.12))
-                    .frame(width: 130, height: 130)
-                    .offset(x: 44, y: -58)
+                    .fill(AppAppearance.accent.opacity(0.1))
+                    .frame(width: 90, height: 90)
+                    .offset(x: 30, y: -42)
             }
-            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(greeting). \(message) \(pendingTaskCount) to do, \(completedTaskCount) done.")
+        .accessibilityLabel("\(greeting). \(pendingTaskCount) to do, \(completedTaskCount) done.")
     }
 
     private func headerStat(value: Int, label: String, tint: Color) -> some View {
-        HStack(spacing: 5) {
+        VStack(spacing: 1) {
             Text("\(value)")
                 .font(.headline.weight(.bold))
                 .foregroundStyle(tint)
             Text(label)
-                .font(.caption)
+                .font(.caption2)
                 .foregroundStyle(.secondary)
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 7)
-        .background(AppAppearance.softHighlight, in: Capsule())
+        .frame(minWidth: 34)
     }
 }
