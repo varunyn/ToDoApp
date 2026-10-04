@@ -12,6 +12,7 @@ struct CategoryCustomizationView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var goalEnabled: Bool
+    @State private var persistenceErrorMessage: String?
 
     init(category: Category) {
         self.category = category
@@ -112,8 +113,17 @@ struct CategoryCustomizationView: View {
                 }
             }
         }
+        .alert("Couldn’t save changes", isPresented: saveErrorIsPresented) {
+            Button("OK", role: .cancel) { persistenceErrorMessage = nil }
+        } message: {
+            Text(persistenceErrorMessage ?? "Please try again.")
+        }
         .onDisappear {
-            try? modelContext.save()
+            do {
+                try PersistenceSupport.save(modelContext)
+            } catch {
+                persistenceErrorMessage = PersistenceSupport.userMessage(for: error)
+            }
         }
     }
 
@@ -125,8 +135,19 @@ struct CategoryCustomizationView: View {
     }
 
     private func save() {
-        try? modelContext.save()
-        dismiss()
+        do {
+            try PersistenceSupport.save(modelContext)
+            dismiss()
+        } catch {
+            persistenceErrorMessage = PersistenceSupport.userMessage(for: error)
+        }
+    }
+
+    private var saveErrorIsPresented: Binding<Bool> {
+        Binding(
+            get: { persistenceErrorMessage != nil },
+            set: { if !$0 { persistenceErrorMessage = nil } }
+        )
     }
 }
 

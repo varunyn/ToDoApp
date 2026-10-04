@@ -23,14 +23,11 @@ struct ToDoAppApp: App {
     }
 
     private static func makePreferredContainer() -> ModelContainer {
-        if let shared = try? SharedModelContainer.makeRecoveringShared() {
+        if let shared = try? SharedModelContainer.make() {
             return shared
         }
         if let sharedLocalOnly = try? SharedModelContainer.makeSharedWithoutCloudKit() {
             return sharedLocalOnly
-        }
-        if let inMemory = try? SharedModelContainer.makeInMemory() {
-            return inMemory
         }
         fatalError("Could not open any SwiftData store configuration.")
     }

@@ -25,6 +25,7 @@ struct TaskListView: View {
     @State private var quickAddPriority: TaskPriority = .none
     @State private var quickAddCategory: Category?
     @FocusState private var isQuickAddFocused: Bool
+    @State private var persistenceErrorMessage: String?
 
     private var orderedItems: [Item] {
         orderedItemsCache.sorted { lhs, rhs in
@@ -163,6 +164,11 @@ struct TaskListView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .tasksDidChange)) { _ in
             reloadOrderedItems()
+        }
+        .alert("Couldn’t save changes", isPresented: saveErrorIsPresented) {
+            Button("OK", role: .cancel) { persistenceErrorMessage = nil }
+        } message: {
+            Text(persistenceErrorMessage ?? "Please try again.")
         }
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
@@ -342,7 +348,7 @@ struct TaskListView: View {
             category: destination
         )
         modelContext.insert(item)
-        try? modelContext.save()
+        saveChanges()
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
         quickAddTitle = ""
         quickAddPriority = .none
@@ -515,14 +521,14 @@ struct TaskListView: View {
         } else if !item.isDone, wasDone {
             reopenedFeedbackTrigger += 1
         }
-        try? modelContext.save()
+        saveChanges()
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
         reloadOrderedItems()
     }
 
     private func deleteItem(_ item: Item) {
         modelContext.delete(item)
-        try? modelContext.save()
+        saveChanges()
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
         reloadOrderedItems()
     }
@@ -537,16 +543,30 @@ struct TaskListView: View {
         for (index, item) in items.enumerated() {
             item.order = index
         }
-        try? modelContext.save()
+        saveChanges()
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
         reloadOrderedItems()
     }
 
     private func reloadOrderedItems() {
-        modelContext.rollback()
         let descriptor = FetchDescriptor<Item>(sortBy: [SortDescriptor(\.order)])
         let fetchedItems = (try? modelContext.fetch(descriptor)) ?? []
         orderedItemsCache = fetchedItems.filter { $0.category?.persistentModelID == category.persistentModelID }
+    }
+
+    private var saveErrorIsPresented: Binding<Bool> {
+        Binding(
+            get: { persistenceErrorMessage != nil },
+            set: { if !$0 { persistenceErrorMessage = nil } }
+        )
+    }
+
+    private func saveChanges() {
+        do {
+            try PersistenceSupport.save(modelContext)
+        } catch {
+            persistenceErrorMessage = PersistenceSupport.userMessage(for: error)
+        }
     }
 }
 

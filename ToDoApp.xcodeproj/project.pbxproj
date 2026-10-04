@@ -19,6 +19,7 @@
 		D2A000000000000000000007 /* TaskListFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000007 /* TaskListFilter.swift */; };
 		D2A000000000000000000008 /* AppGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000008 /* AppGroup.swift */; };
 		D2A000000000000000000009 /* SharedModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000009 /* SharedModelContainer.swift */; };
+		D2A000000000000000000011 /* PersistenceSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000011 /* PersistenceSupport.swift */; };
 		D2A00000000000000000000A /* EditTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A00000000000000000000B /* EditTaskView.swift */; };
 		D2A00000000000000000000B /* TaskPriority.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A00000000000000000000C /* TaskPriority.swift */; };
 		D2A00000000000000000000C /* CategoryCustomizationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A00000000000000000000D /* CategoryCustomizationView.swift */; };
@@ -73,6 +74,7 @@
 		D1A000000000000000000007 /* TaskListFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskListFilter.swift; sourceTree = "<group>"; };
 		D1A000000000000000000008 /* AppGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroup.swift; sourceTree = "<group>"; };
 		D1A000000000000000000009 /* SharedModelContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedModelContainer.swift; sourceTree = "<group>"; };
+		D1A000000000000000000011 /* PersistenceSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceSupport.swift; sourceTree = "<group>"; };
 		D1A00000000000000000000B /* EditTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditTaskView.swift; sourceTree = "<group>"; };
 		D1A00000000000000000000C /* TaskPriority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskPriority.swift; sourceTree = "<group>"; };
 		D1A00000000000000000000D /* CategoryCustomizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryCustomizationView.swift; sourceTree = "<group>"; };
@@ -156,6 +158,7 @@
 			children = (
 				D1A000000000000000000001 /* ToDoAppApp.swift */,
 				D1A000000000000000000009 /* SharedModelContainer.swift */,
+				D1A000000000000000000011 /* PersistenceSupport.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -339,6 +342,7 @@
 				01CCC88E200E80050037B778 /* Category.swift in Sources */,
 				D2A000000000000000000008 /* AppGroup.swift in Sources */,
 				D2A000000000000000000009 /* SharedModelContainer.swift in Sources */,
+				D2A000000000000000000011 /* PersistenceSupport.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

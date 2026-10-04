@@ -12,6 +12,7 @@ struct CategoryReorderView: View {
     @Query(sort: \Category.order) private var categories: [Category]
 
     @State private var ordered: [Category] = []
+    @State private var persistenceErrorMessage: String?
 
     var body: some View {
         NavigationStack {
@@ -27,10 +28,16 @@ struct CategoryReorderView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {
-                        persistOrder()
-                        dismiss()
+                        if persistOrder() {
+                            dismiss()
+                        }
                     }
                 }
+            }
+            .alert("Couldn’t save changes", isPresented: saveErrorIsPresented) {
+                Button("OK", role: .cancel) { persistenceErrorMessage = nil }
+            } message: {
+                Text(persistenceErrorMessage ?? "Please try again.")
             }
             .onAppear {
                 ordered = categories
@@ -42,11 +49,24 @@ struct CategoryReorderView: View {
         ordered.move(fromOffsets: source, toOffset: destination)
     }
 
-    private func persistOrder() {
+    private func persistOrder() -> Bool {
         for (index, category) in ordered.enumerated() {
             category.order = index
         }
-        try? modelContext.save()
+        do {
+            try PersistenceSupport.save(modelContext)
+            return true
+        } catch {
+            persistenceErrorMessage = PersistenceSupport.userMessage(for: error)
+            return false
+        }
+    }
+
+    private var saveErrorIsPresented: Binding<Bool> {
+        Binding(
+            get: { persistenceErrorMessage != nil },
+            set: { if !$0 { persistenceErrorMessage = nil } }
+        )
     }
 }
 

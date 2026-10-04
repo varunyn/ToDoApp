@@ -21,6 +21,7 @@ struct QuickAddView: View {
     @State private var title = ""
     @State private var priority: TaskPriority = .none
     @State private var selectedCategory: Category?
+    @State private var persistenceErrorMessage: String?
     @FocusState private var isTitleFocused: Bool
 
     private var destinationCategory: Category? {
@@ -62,6 +63,11 @@ struct QuickAddView: View {
             }
         }
         .animation(.spring(response: 0.34, dampingFraction: 0.82), value: isExpanded)
+        .alert("Couldn’t save changes", isPresented: saveErrorIsPresented) {
+            Button("OK", role: .cancel) { persistenceErrorMessage = nil }
+        } message: {
+            Text(persistenceErrorMessage ?? "Please try again.")
+        }
     }
 
     private var expandedQuickAdd: some View {
@@ -180,12 +186,24 @@ struct QuickAddView: View {
             category: destinationCategory
         )
         modelContext.insert(item)
-        try? modelContext.save()
+        do {
+            try PersistenceSupport.save(modelContext)
+        } catch {
+            persistenceErrorMessage = PersistenceSupport.userMessage(for: error)
+            return
+        }
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
         NotificationCenter.default.post(name: .tasksDidChange, object: nil)
         title = ""
         priority = .none
         selectedCategory = defaultCategory
         isTitleFocused = true
+    }
+
+    private var saveErrorIsPresented: Binding<Bool> {
+        Binding(
+            get: { persistenceErrorMessage != nil },
+            set: { if !$0 { persistenceErrorMessage = nil } }
+        )
     }
 }

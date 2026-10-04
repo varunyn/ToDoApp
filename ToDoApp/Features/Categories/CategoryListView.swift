@@ -20,6 +20,7 @@ struct CategoryListView: View {
     @State private var customizingCategory: Category?
     @State private var navigationPath = NavigationPath()
     @State private var searchText = ""
+    @State private var persistenceErrorMessage: String?
 
     private let columns = [
         GridItem(.flexible(), spacing: AppAppearance.gridSpacing),
@@ -129,7 +130,19 @@ struct CategoryListView: View {
                 Text("Enter a name for the new category.")
             }
             .searchable(text: $searchText, prompt: "Search categories")
+            .alert("Couldn’t save changes", isPresented: saveErrorIsPresented) {
+                Button("OK", role: .cancel) { persistenceErrorMessage = nil }
+            } message: {
+                Text(persistenceErrorMessage ?? "Please try again.")
+            }
         }
+    }
+
+    private var saveErrorIsPresented: Binding<Bool> {
+        Binding(
+            get: { persistenceErrorMessage != nil },
+            set: { if !$0 { persistenceErrorMessage = nil } }
+        )
     }
 
     private var dashboardHero: some View {
@@ -264,7 +277,7 @@ struct CategoryListView: View {
         let nextOrder = (categories.map(\.order).max() ?? -1) + 1
         let category = Category(name: trimmed, order: nextOrder)
         modelContext.insert(category)
-        try? modelContext.save()
+        saveChanges()
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
     }
 
@@ -300,9 +313,17 @@ struct CategoryListView: View {
         for category in toDelete {
             modelContext.delete(category)
         }
-        try? modelContext.save()
+        saveChanges()
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
         cancelSelection()
+    }
+
+    private func saveChanges() {
+        do {
+            try PersistenceSupport.save(modelContext)
+        } catch {
+            persistenceErrorMessage = PersistenceSupport.userMessage(for: error)
+        }
     }
 }
 
@@ -314,6 +335,7 @@ private struct ProfileView: View {
     @AppStorage("Key") private var storedDisplayName = ""
     @State private var showClearDataConfirmation = false
     @State private var isClearingData = false
+    @State private var persistenceErrorMessage: String?
 
     private var totalTaskCount: Int {
         categories.reduce(0) { $0 + $1.items.count }
@@ -359,7 +381,19 @@ private struct ProfileView: View {
         } message: {
             Text("This permanently deletes all categories and tasks.")
         }
+        .alert("Couldn’t save changes", isPresented: saveErrorIsPresented) {
+            Button("OK", role: .cancel) { persistenceErrorMessage = nil }
+        } message: {
+            Text(persistenceErrorMessage ?? "Please try again.")
+        }
         .onDisappear(perform: normalizeDisplayName)
+    }
+
+    private var saveErrorIsPresented: Binding<Bool> {
+        Binding(
+            get: { persistenceErrorMessage != nil },
+            set: { if !$0 { persistenceErrorMessage = nil } }
+        )
     }
 
     private func clearAllData() {
@@ -370,7 +404,7 @@ private struct ProfileView: View {
             modelContext.delete(category)
         }
 
-        try? modelContext.save()
+        guard saveChanges() else { return }
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
         isClearingData = false
         dismiss()
@@ -378,6 +412,18 @@ private struct ProfileView: View {
 
     private func normalizeDisplayName() {
         storedDisplayName = storedDisplayName.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    @discardableResult
+    private func saveChanges() -> Bool {
+        do {
+            try PersistenceSupport.save(modelContext)
+            return true
+        } catch {
+            persistenceErrorMessage = PersistenceSupport.userMessage(for: error)
+            isClearingData = false
+            return false
+        }
     }
 }
 

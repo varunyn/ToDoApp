@@ -13,6 +13,7 @@ struct EditTaskView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var showDeleteConfirmation = false
+    @State private var persistenceErrorMessage: String?
     @FocusState private var isTitleFocused: Bool
 
     var body: some View {
@@ -48,6 +49,11 @@ struct EditTaskView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This task will be removed from your list.")
+        }
+        .alert("Couldn’t save changes", isPresented: saveErrorIsPresented) {
+            Button("OK", role: .cancel) { persistenceErrorMessage = nil }
+        } message: {
+            Text(persistenceErrorMessage ?? "Please try again.")
         }
     }
 
@@ -205,18 +211,33 @@ struct EditTaskView: View {
     private func save() {
         guard !trimmedTitle.isEmpty else { return }
         item.title = trimmedTitle
-        try? modelContext.save()
-        WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
-        NotificationCenter.default.post(name: .tasksDidChange, object: nil)
-        dismiss()
+        do {
+            try PersistenceSupport.save(modelContext)
+            WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
+            NotificationCenter.default.post(name: .tasksDidChange, object: nil)
+            dismiss()
+        } catch {
+            persistenceErrorMessage = PersistenceSupport.userMessage(for: error)
+        }
     }
 
     private func deleteTask() {
         modelContext.delete(item)
-        try? modelContext.save()
-        WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
-        NotificationCenter.default.post(name: .tasksDidChange, object: nil)
-        dismiss()
+        do {
+            try PersistenceSupport.save(modelContext)
+            WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
+            NotificationCenter.default.post(name: .tasksDidChange, object: nil)
+            dismiss()
+        } catch {
+            persistenceErrorMessage = PersistenceSupport.userMessage(for: error)
+        }
+    }
+
+    private var saveErrorIsPresented: Binding<Bool> {
+        Binding(
+            get: { persistenceErrorMessage != nil },
+            set: { if !$0 { persistenceErrorMessage = nil } }
+        )
     }
 }
 

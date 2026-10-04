@@ -167,7 +167,12 @@ struct ToggleTaskDoneIntent: AppIntent {
         if let item = try? context.fetch(descriptor).first {
             let willBeDone = !item.isDone
             item.isDone.toggle()
-            try? context.save()
+            do {
+                try context.save()
+            } catch {
+                context.rollback()
+                return .result()
+            }
             updateTransientCompletion(id: uuid, shouldAdd: willBeDone)
             WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
         }
