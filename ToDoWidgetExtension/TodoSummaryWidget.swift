@@ -13,6 +13,7 @@ struct TodoSummaryEntry: TimelineEntry {
     let openTaskCount: Int
     let categoryCount: Int
     let pendingTasks: [WidgetPendingTask]
+    let totalTaskCount: Int
     let hasTransientCompletions: Bool
 }
 
@@ -38,6 +39,7 @@ struct TodoSummaryProvider: TimelineProvider {
                 WidgetPendingTask(widgetID: UUID(), title: "Call back", isRecentlyCompleted: false),
                 WidgetPendingTask(widgetID: UUID(), title: "Review notes", isRecentlyCompleted: false),
             ],
+            totalTaskCount: 3,
             hasTransientCompletions: false
         )
     }
@@ -66,6 +68,7 @@ struct TodoSummaryProvider: TimelineProvider {
                 openTaskCount: 0,
                 categoryCount: 0,
                 pendingTasks: [],
+                totalTaskCount: 0,
                 hasTransientCompletions: false
             )
         }
@@ -102,6 +105,7 @@ struct TodoSummaryProvider: TimelineProvider {
             openTaskCount: openItems.count,
             categoryCount: categories.count,
             pendingTasks: tasks,
+            totalTaskCount: recentCompletedTasks.count + openItems.count,
             hasTransientCompletions: !recentCompletedTasks.isEmpty
         )
     }
@@ -239,8 +243,11 @@ struct TodoSummaryWidgetEntryView: View {
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             } else {
+                let hasOverflow = entry.totalTaskCount > 3
+                let visibleTasks = Array(entry.pendingTasks.prefix(hasOverflow ? 2 : 3))
+
                 VStack(alignment: .leading, spacing: 6) {
-                    ForEach(entry.pendingTasks, id: \.widgetID) { task in
+                    ForEach(visibleTasks, id: \.widgetID) { task in
                         Button(intent: ToggleTaskDoneIntent(taskID: task.widgetID.uuidString)) {
                             HStack(spacing: 8) {
                                 Image(systemName: task.isRecentlyCompleted ? "checkmark.circle.fill" : "circle")
@@ -262,9 +269,17 @@ struct TodoSummaryWidgetEntryView: View {
                         }
                         .buttonStyle(.plain)
                     }
+
+                    if hasOverflow {
+                        Text("+\(entry.totalTaskCount - visibleTasks.count) more in To-Do")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                            .padding(.leading, 26)
+                    }
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding()
     }
 }
@@ -294,6 +309,7 @@ struct TodoSummaryWidget: Widget {
             WidgetPendingTask(widgetID: UUID(), title: "One", isRecentlyCompleted: false),
             WidgetPendingTask(widgetID: UUID(), title: "Two", isRecentlyCompleted: false),
         ],
+        totalTaskCount: 2,
         hasTransientCompletions: false
     )
 }
