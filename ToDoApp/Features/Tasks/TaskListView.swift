@@ -397,16 +397,10 @@ struct TaskListView: View {
     }
 
     private var todayHeader: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "sun.max")
-                .font(.body.weight(.medium))
-                .foregroundStyle(AppAppearance.accent)
-                .frame(width: 38, height: 38)
-                .background(AppAppearance.accent.opacity(0.12), in: Circle())
-
+        HStack(alignment: .lastTextBaseline, spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Today")
-                    .font(.title3.weight(.semibold))
+                Text("Tasks")
+                    .font(.title2.weight(.bold))
                 Text(Date.now.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -415,11 +409,8 @@ struct TaskListView: View {
             Spacer(minLength: 12)
 
             Text("\(displayedItems.count) \(displayedItems.count == 1 ? "task" : "tasks")")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(AppAppearance.accent)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 7)
-                .background(AppAppearance.accent.opacity(0.10), in: Capsule())
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.secondary)
         }
         .accessibilityElement(children: .combine)
     }
@@ -439,66 +430,74 @@ struct TaskListView: View {
 
     @ViewBuilder
     private func taskRow(_ item: Item) -> some View {
-        HStack(alignment: .center, spacing: 12) {
-            Button {
-                toggleDone(item)
-            } label: {
-                ZStack {
-                    Circle()
-                        .fill(item.isDone ? AppAppearance.accent.opacity(0.16) : .clear)
-                    Circle()
-                        .stroke(
-                            item.isDone ? AppAppearance.accent : AppAppearance.accent.opacity(0.48),
-                            lineWidth: 1.5
-                        )
-                    if item.isDone {
-                        Image(systemName: "checkmark")
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(AppAppearance.accent)
-                            .transition(.scale.combined(with: .opacity))
-                    }
+        HStack(alignment: .center, spacing: 14) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(item.title.isEmpty ? "Untitled task" : item.title)
+                    .font(.body.weight(.medium))
+                    .strikethrough(item.isDone, color: .secondary)
+                    .foregroundStyle(item.isDone ? .secondary : .primary)
+                    .contentTransition(.interpolate)
+
+                if item.priority != .none {
+                    Label(item.priority.title, systemImage: item.priority.systemImage)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(item.priority.tint)
+                        .accessibilityLabel("\(item.priority.title) priority")
                 }
-                .contentTransition(.symbolEffect(.replace))
-                .symbolEffect(.bounce, value: item.isDone)
-                .frame(width: 26, height: 26)
-                .frame(width: AppAppearance.minimumTapTarget, height: AppAppearance.minimumTapTarget)
-                .contentShape(Rectangle())
             }
-            .buttonStyle(.borderless)
-            .accessibilityLabel(item.isDone ? "Mark as not done" : "Mark as done")
 
-            Text(item.title.isEmpty ? "Untitled task" : item.title)
-                .font(.body.weight(.medium))
-                .strikethrough(item.isDone, color: .secondary)
-                .foregroundStyle(item.isDone ? .secondary : .primary)
-                .contentTransition(.interpolate)
+            Spacer(minLength: 8)
 
-            if item.priority != .none {
-                Spacer(minLength: 4)
+            VStack(alignment: .trailing, spacing: 0) {
+                if !item.isDone {
+                    Text(item.pendingAgeLabel)
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.secondary)
+                        .accessibilityLabel(
+                            item.pendingAgeLabel == "Today"
+                                ? "Pending since today"
+                                : "Pending for \(item.pendingAgeLabel)"
+                        )
+                }
 
-                Label(item.priority.title, systemImage: item.priority.systemImage)
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(item.priority.tint)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 5)
-                    .background(item.priority.tint.opacity(0.12), in: Capsule())
-                    .accessibilityLabel("\(item.priority.title) priority")
+                Button {
+                    toggleDone(item)
+                } label: {
+                    ZStack {
+                        Circle()
+                            .fill(item.isDone ? AppAppearance.accent.opacity(0.16) : .clear)
+                        Circle()
+                            .stroke(
+                                item.isDone ? AppAppearance.accent : AppAppearance.accent.opacity(0.48),
+                                lineWidth: 1.5
+                            )
+                        if item.isDone {
+                            Image(systemName: "checkmark")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(AppAppearance.accent)
+                                .transition(.scale.combined(with: .opacity))
+                        }
+                    }
+                    .contentTransition(.symbolEffect(.replace))
+                    .symbolEffect(.bounce, value: item.isDone)
+                    .frame(width: 26, height: 26)
+                    .frame(width: AppAppearance.minimumTapTarget, height: AppAppearance.minimumTapTarget)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(item.isDone ? "Mark as not done" : "Mark as done")
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(AppAppearance.taskSurface)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .stroke(AppAppearance.taskBorder, lineWidth: 1)
-                }
-                .shadow(color: .black.opacity(0.045), radius: 10, y: 5)
-        }
         .padding(.horizontal, 16)
-        .padding(.vertical, 5)
+        .padding(.vertical, 14)
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(AppAppearance.taskSurface)
+                .shadow(color: .black.opacity(0.035), radius: 8, y: 3)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 4)
         .opacity(item.isDone ? 0.58 : 1)
         .animation(.spring(response: 0.38, dampingFraction: 0.78), value: item.isDone)
         .listRowSeparator(.hidden)

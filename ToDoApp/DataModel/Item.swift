@@ -14,6 +14,8 @@ final class Item {
     var title: String
     var isDone: Bool
     var order: Int
+    // Optional so existing SwiftData stores can add this field through a lightweight migration.
+    var createdAt: Date? = nil
     var priorityRawValue: Int = TaskPriority.none.rawValue
 
     var category: Category?
@@ -23,6 +25,7 @@ final class Item {
         title: String = "",
         isDone: Bool = false,
         order: Int = 0,
+        createdAt: Date = .now,
         priority: TaskPriority = .none,
         category: Category? = nil
     ) {
@@ -30,6 +33,7 @@ final class Item {
         self.title = title
         self.isDone = isDone
         self.order = order
+        self.createdAt = createdAt
         self.priorityRawValue = priority.rawValue
         self.category = category
     }
@@ -37,5 +41,18 @@ final class Item {
     var priority: TaskPriority {
         get { TaskPriority(rawValue: priorityRawValue) ?? .none }
         set { priorityRawValue = newValue.rawValue }
+    }
+
+    var pendingAgeLabel: String {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: createdAt ?? .now)
+        let today = calendar.startOfDay(for: .now)
+        let days = max(calendar.dateComponents([.day], from: start, to: today).day ?? 0, 0)
+
+        switch days {
+        case 0: return "Today"
+        case 1: return "1d"
+        default: return "\(days)d"
+        }
     }
 }
