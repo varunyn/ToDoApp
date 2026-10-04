@@ -29,6 +29,9 @@ struct ToDoAppApp: App {
         if let sharedLocalOnly = try? SharedModelContainer.makeSharedWithoutCloudKit() {
             return sharedLocalOnly
         }
+        if let local = try? SharedModelContainer.makeLocal() {
+            return local
+        }
         fatalError("Could not open any SwiftData store configuration.")
     }
 }

@@ -11,6 +11,8 @@
 		01CCC88E200E80050037B778 /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CCC88D200E80050037B778 /* Category.swift */; };
 		01EC34521FE97E570093AAD5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 01EC34511FE97E570093AAD5 /* Assets.xcassets */; };
 		01EC34551FE97E570093AAD5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 01EC34531FE97E570093AAD5 /* LaunchScreen.storyboard */; };
+		A558C6ED3072D46200C6032E /* TaskPriority.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A00000000000000000000C /* TaskPriority.swift */; };
+		A558C6EE3072D46200C6032E /* CategoryCustomization.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A00000000000000000000E /* CategoryCustomization.swift */; };
 		D2A000000000000000000001 /* ToDoAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000001 /* ToDoAppApp.swift */; };
 		D2A000000000000000000002 /* CategoryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000002 /* CategoryListView.swift */; };
 		D2A000000000000000000003 /* CategoryReorderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000003 /* CategoryReorderView.swift */; };
@@ -19,13 +21,13 @@
 		D2A000000000000000000007 /* TaskListFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000007 /* TaskListFilter.swift */; };
 		D2A000000000000000000008 /* AppGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000008 /* AppGroup.swift */; };
 		D2A000000000000000000009 /* SharedModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000009 /* SharedModelContainer.swift */; };
-		D2A000000000000000000011 /* PersistenceSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000011 /* PersistenceSupport.swift */; };
 		D2A00000000000000000000A /* EditTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A00000000000000000000B /* EditTaskView.swift */; };
 		D2A00000000000000000000B /* TaskPriority.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A00000000000000000000C /* TaskPriority.swift */; };
 		D2A00000000000000000000C /* CategoryCustomizationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A00000000000000000000D /* CategoryCustomizationView.swift */; };
 		D2A00000000000000000000D /* CategoryCustomization.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A00000000000000000000E /* CategoryCustomization.swift */; };
 		D2A00000000000000000000E /* HomeHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A00000000000000000000F /* HomeHeaderView.swift */; };
 		D2A00000000000000000000F /* QuickAddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000010 /* QuickAddView.swift */; };
+		D2A000000000000000000011 /* PersistenceSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A000000000000000000011 /* PersistenceSupport.swift */; };
 		F70000000000000000000001 /* ToDoWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F70000000000000000000002 /* ToDoWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		F70000000000000000000003 /* ToDoWidgetExtensionBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70000000000000000000004 /* ToDoWidgetExtensionBundle.swift */; };
 		F70000000000000000000005 /* TodoSummaryWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70000000000000000000006 /* TodoSummaryWidget.swift */; };
@@ -74,14 +76,14 @@
 		D1A000000000000000000007 /* TaskListFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskListFilter.swift; sourceTree = "<group>"; };
 		D1A000000000000000000008 /* AppGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroup.swift; sourceTree = "<group>"; };
 		D1A000000000000000000009 /* SharedModelContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedModelContainer.swift; sourceTree = "<group>"; };
-		D1A000000000000000000011 /* PersistenceSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceSupport.swift; sourceTree = "<group>"; };
+		D1A00000000000000000000A /* ToDoApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ToDoApp.entitlements; sourceTree = "<group>"; };
 		D1A00000000000000000000B /* EditTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditTaskView.swift; sourceTree = "<group>"; };
 		D1A00000000000000000000C /* TaskPriority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskPriority.swift; sourceTree = "<group>"; };
 		D1A00000000000000000000D /* CategoryCustomizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryCustomizationView.swift; sourceTree = "<group>"; };
 		D1A00000000000000000000E /* CategoryCustomization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryCustomization.swift; sourceTree = "<group>"; };
 		D1A00000000000000000000F /* HomeHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeHeaderView.swift; sourceTree = "<group>"; };
 		D1A000000000000000000010 /* QuickAddView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickAddView.swift; sourceTree = "<group>"; };
-		D1A00000000000000000000A /* ToDoApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ToDoApp.entitlements; sourceTree = "<group>"; };
+		D1A000000000000000000011 /* PersistenceSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceSupport.swift; sourceTree = "<group>"; };
 		F70000000000000000000002 /* ToDoWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ToDoWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		F70000000000000000000004 /* ToDoWidgetExtensionBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToDoWidgetExtensionBundle.swift; sourceTree = "<group>"; };
 		F70000000000000000000006 /* TodoSummaryWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoSummaryWidget.swift; sourceTree = "<group>"; };
@@ -333,9 +335,9 @@
 				D2A000000000000000000007 /* TaskListFilter.swift in Sources */,
 				D2A000000000000000000004 /* TaskListView.swift in Sources */,
 				D2A00000000000000000000A /* EditTaskView.swift in Sources */,
-				D2A00000000000000000000B /* TaskPriority.swift in Sources */,
+				A558C6ED3072D46200C6032E /* TaskPriority.swift in Sources */,
 				D2A00000000000000000000C /* CategoryCustomizationView.swift in Sources */,
-				D2A00000000000000000000D /* CategoryCustomization.swift in Sources */,
+				A558C6EE3072D46200C6032E /* CategoryCustomization.swift in Sources */,
 				D2A00000000000000000000E /* HomeHeaderView.swift in Sources */,
 				D2A00000000000000000000F /* QuickAddView.swift in Sources */,
 				01CCC88C200E7F840037B778 /* Item.swift in Sources */,
@@ -509,7 +511,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM_ID)";
+				DEVELOPMENT_TEAM = AG5WJCE73V;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ToDoApp/Info.plist;
@@ -519,6 +521,7 @@
 				);
 				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(MAIN_BUNDLE_IDENTIFIER)";
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = com.varunyadav.toki;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -539,7 +542,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM_ID)";
+				DEVELOPMENT_TEAM = AG5WJCE73V;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ToDoApp/Info.plist;
@@ -549,6 +552,7 @@
 				);
 				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(MAIN_BUNDLE_IDENTIFIER)";
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = com.varunyadav.toki;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -567,7 +571,7 @@
 				CODE_SIGN_ENTITLEMENTS = ToDoWidgetExtension/ToDoWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM_ID)";
+				DEVELOPMENT_TEAM = AG5WJCE73V;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ToDoWidgetExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -594,7 +598,7 @@
 				CODE_SIGN_ENTITLEMENTS = ToDoWidgetExtension/ToDoWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM_ID)";
+				DEVELOPMENT_TEAM = AG5WJCE73V;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ToDoWidgetExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
