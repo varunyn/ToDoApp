@@ -10,6 +10,7 @@ enum SharedModelContainer {
     private static let schema = Schema([Category.self, Item.self])
     private static let sharedConfigurationName = "ToDoSharedStore"
     static func make() throws -> ModelContainer {
+        try requireSharedContainer()
         let configuration = ModelConfiguration(
             sharedConfigurationName,
             schema: schema,
@@ -20,6 +21,7 @@ enum SharedModelContainer {
     }
 
     static func makeSharedWithoutCloudKit() throws -> ModelContainer {
+        try requireSharedContainer()
         let configuration = ModelConfiguration(
             sharedConfigurationName,
             schema: schema,
@@ -29,9 +31,10 @@ enum SharedModelContainer {
         return try ModelContainer(for: schema, configurations: [configuration])
     }
 
-    static func makeLocal() throws -> ModelContainer {
-        let configuration = ModelConfiguration(schema: schema)
-        return try ModelContainer(for: schema, configurations: [configuration])
+    private static func requireSharedContainer() throws {
+        guard FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: AppGroup.identifier) != nil else {
+            throw CocoaError(.fileNoSuchFile)
+        }
     }
 
     static func makeInMemory() throws -> ModelContainer {

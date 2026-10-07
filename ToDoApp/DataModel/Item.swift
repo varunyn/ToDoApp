@@ -10,10 +10,10 @@ import SwiftData
 final class Item {
     #Index<Item>([\.order], [\.isDone], [\.priorityRawValue])
 
-    var widgetID: UUID
-    var title: String
-    var isDone: Bool
-    var order: Int
+    var widgetID: UUID = UUID()
+    var title: String = ""
+    var isDone: Bool = false
+    var order: Int = 0
     // Optional so existing SwiftData stores can add this field through a lightweight migration.
     var createdAt: Date? = nil
     var priorityRawValue: Int = TaskPriority.none.rawValue

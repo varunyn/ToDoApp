@@ -21,6 +21,7 @@ struct WidgetPendingTask: Hashable {
     let widgetID: UUID
     let title: String
     let isRecentlyCompleted: Bool
+    var isShared = false
 }
 
 struct TodoSummaryProvider: TimelineProvider {
@@ -62,7 +63,7 @@ struct TodoSummaryProvider: TimelineProvider {
     }
 
     private func loadEntry(at currentDate: Date) -> TodoSummaryEntry {
-        guard let container = try? SharedModelContainer.make() else {
+        guard let container = (try? SharedModelContainer.make()) ?? (try? SharedModelContainer.makeSharedWithoutCloudKit()) else {
             return TodoSummaryEntry(
                 date: currentDate,
                 openTaskCount: 0,
@@ -73,9 +74,15 @@ struct TodoSummaryProvider: TimelineProvider {
             )
         }
         let context = ModelContext(container)
-        let openItems = (try? context.fetch(FetchDescriptor<Item>(predicate: #Predicate { !$0.isDone }))) ?? []
-        let completedItems = (try? context.fetch(FetchDescriptor<Item>(predicate: #Predicate { $0.isDone }))) ?? []
-        let categories = (try? context.fetch(FetchDescriptor<Category>())) ?? []
+        let openItems = ((try? context.fetch(FetchDescriptor<Item>(predicate: #Predicate { !$0.isDone }))) ?? []).filter { $0.category?.sharedZoneName == nil }
+        let completedItems = ((try? context.fetch(FetchDescriptor<Item>(predicate: #Predicate { $0.isDone }))) ?? []).filter { $0.category?.sharedZoneName == nil }
+        let categories = ((try? context.fetch(FetchDescriptor<Category>())) ?? []).filter { $0.sharedZoneName == nil }
+        let sharedLists = SharedListCache.activeLists().filter(\.isAvailable)
+        let sharedTasks = sharedLists.flatMap(\.visibleTasks).filter { !$0.isDone }
+        let sharedPendingTasks = sharedTasks.compactMap { task -> WidgetPendingTask? in
+            guard let id = UUID(uuidString: task.id) else { return nil }
+            return WidgetPendingTask(widgetID: id, title: task.title, isRecentlyCompleted: false, isShared: true)
+        }
         let transientCompletions = loadTransientCompletions(currentDate: currentDate)
 
         let recentCompletedTasks = completedItems
@@ -99,13 +106,13 @@ struct TodoSummaryProvider: TimelineProvider {
             )
         }
 
-        let tasks = Array((recentCompletedTasks + pendingTasks).prefix(5))
+        let tasks = Array((recentCompletedTasks + pendingTasks + sharedPendingTasks).prefix(5))
         return TodoSummaryEntry(
             date: currentDate,
-            openTaskCount: openItems.count,
-            categoryCount: categories.count,
+            openTaskCount: openItems.count + sharedTasks.count,
+            categoryCount: categories.count + sharedLists.count,
             pendingTasks: tasks,
-            totalTaskCount: recentCompletedTasks.count + openItems.count,
+            totalTaskCount: recentCompletedTasks.count + openItems.count + sharedTasks.count,
             hasTransientCompletions: !recentCompletedTasks.isEmpty
         )
     }
@@ -161,14 +168,14 @@ struct ToggleTaskDoneIntent: AppIntent {
     func perform() async throws -> some IntentResult {
         guard
             let uuid = UUID(uuidString: taskID),
-            let container = try? SharedModelContainer.make()
+            let container = (try? SharedModelContainer.make()) ?? (try? SharedModelContainer.makeSharedWithoutCloudKit())
         else {
             return .result()
         }
 
         let context = ModelContext(container)
         let descriptor = FetchDescriptor<Item>(predicate: #Predicate { $0.widgetID == uuid })
-        if let item = try? context.fetch(descriptor).first {
+        if let item = try? context.fetch(descriptor).first, item.category?.sharedZoneName == nil {
             let willBeDone = !item.isDone
             item.isDone.toggle()
             do {
@@ -225,6 +232,19 @@ struct TodoSummaryWidgetEntryView: View {
         .padding()
     }
 
+    private func widgetTaskRow(_ task: WidgetPendingTask) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: task.isShared ? "person.2.fill" : task.isRecentlyCompleted ? "checkmark.circle.fill" : "circle")
+                .font(.caption2)
+                .foregroundStyle(task.isRecentlyCompleted ? .green : .secondary)
+            Text(task.title)
+                .font(.callout).lineLimit(1)
+                .strikethrough(task.isRecentlyCompleted)
+                .foregroundStyle(task.isRecentlyCompleted ? .secondary : .primary)
+            Spacer(minLength: 0)
+        }
+    }
+
     private var mediumLayout: some View {
         VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 4) {
@@ -248,26 +268,17 @@ struct TodoSummaryWidgetEntryView: View {
 
                 VStack(alignment: .leading, spacing: 6) {
                     ForEach(visibleTasks, id: \.widgetID) { task in
-                        Button(intent: ToggleTaskDoneIntent(taskID: task.widgetID.uuidString)) {
-                            HStack(spacing: 8) {
-                                Image(systemName: task.isRecentlyCompleted ? "checkmark.circle.fill" : "circle")
-                                    .font(.caption2)
-                                    .foregroundStyle(task.isRecentlyCompleted ? .green : .secondary)
-                                Text(task.title)
-                                    .font(.callout)
-                                    .lineLimit(1)
-                                    .foregroundStyle(task.isRecentlyCompleted ? .secondary : .primary)
-                                    .overlay(alignment: .center) {
-                                        if task.isRecentlyCompleted {
-                                            Rectangle()
-                                                .fill(.secondary)
-                                                .frame(height: 1)
-                                        }
-                                    }
-                                Spacer(minLength: 0)
+                        if task.isShared {
+                            Link(destination: URL(string: "toki://shared-lists")!) {
+                                widgetTaskRow(task)
                             }
+                            .accessibilityHint("Opens the app to edit this shared task")
+                        } else {
+                            Button(intent: ToggleTaskDoneIntent(taskID: task.widgetID.uuidString)) {
+                                widgetTaskRow(task)
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
 
                     if hasOverflow {

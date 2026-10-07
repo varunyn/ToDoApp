@@ -8,8 +8,9 @@ import SwiftUI
 import WidgetKit
 
 struct CategoryListView: View {
+    @Environment(SharedListStore.self) private var sharing
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Category.order) private var categories: [Category]
+    @Query(filter: #Predicate<Category> { $0.sharedZoneName == nil }, sort: \Category.order) private var categories: [Category]
     @AppStorage("Key") private var storedDisplayName = ""
 
     @State private var isSelecting = false
@@ -28,13 +29,14 @@ struct CategoryListView: View {
     ]
 
     private var totalTaskCount: Int {
-        categories.reduce(0) { $0 + $1.items.count }
+        categories.reduce(0) { $0 + $1.taskItems.count }
+            + sharing.lists.filter(\.isAvailable).reduce(0) { $0 + $1.visibleTasks.count }
     }
 
     private var completedTaskCount: Int {
         categories.reduce(0) { partial, category in
-            partial + category.items.filter(\.isDone).count
-        }
+            partial + category.taskItems.filter(\.isDone).count
+        } + sharing.lists.filter(\.isAvailable).reduce(0) { $0 + $1.visibleTasks.filter(\.isDone).count }
     }
 
     private var trimmedSearch: String {
@@ -50,19 +52,24 @@ struct CategoryListView: View {
         }
     }
 
+    private var filteredSharedLists: [SharedList] {
+        sharing.lists.filter { trimmedSearch.isEmpty || $0.name.localizedCaseInsensitiveContains(trimmedSearch) }
+    }
+
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     dashboardHero
-                    if categories.isEmpty {
+                    sharedLists
+                    if categories.isEmpty && sharing.lists.isEmpty {
                         ContentUnavailableView(
                             "No categories",
                             systemImage: "square.grid.2x2",
                             description: Text("Tap Add category in the toolbar to create one.")
                         )
                         .padding(.top, 40)
-                    } else if !trimmedSearch.isEmpty, filteredCategories.isEmpty {
+                    } else if !trimmedSearch.isEmpty, filteredCategories.isEmpty, filteredSharedLists.isEmpty {
                         ContentUnavailableView.search(text: trimmedSearch)
                             .padding(.top, 40)
                     } else {
@@ -130,10 +137,69 @@ struct CategoryListView: View {
                 Text("Enter a name for the new category.")
             }
             .searchable(text: $searchText, prompt: "Search categories")
+            .onChange(of: sharing.lists.map(\.id)) {
+                completePublications()
+            }
+            .onChange(of: categories.map(\.pendingShareZoneName)) {
+                completePublications()
+            }
             .alert("Couldn’t save changes", isPresented: saveErrorIsPresented) {
                 Button("OK", role: .cancel) { persistenceErrorMessage = nil }
             } message: {
                 Text(persistenceErrorMessage ?? "Please try again.")
+            }
+        }
+    }
+
+    private func completePublications() {
+        // Also handles private metadata arriving after the shared zone on another owner's device.
+        let published = categories.filter { category in
+            guard let zone = category.pendingShareZoneName else { return false }
+            return sharing.lists.contains { $0.isOwner && $0.zoneName == zone }
+        }
+        guard !published.isEmpty else { return }
+        for category in published { category.sharedZoneName = category.pendingShareZoneName }
+        saveChanges()
+    }
+
+    private var sharedLists: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("Shared lists").font(.headline)
+                Spacer()
+                Button("Refresh shared lists", systemImage: "arrow.clockwise") { sharing.requestSync() }
+                    .labelStyle(.iconOnly)
+                    .disabled(sharing.isSyncing)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            if sharing.lists.isEmpty {
+                Text("Open a category and tap Share List to invite someone.")
+                    .font(.subheadline).foregroundStyle(.secondary)
+            }
+            ForEach(filteredSharedLists) { list in
+                NavigationLink {
+                    SharedTaskListView(listID: list.id)
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: list.isAvailable ? "person.2.fill" : "icloud.slash")
+                            .foregroundStyle(AppAppearance.accent)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(list.name).font(.headline).foregroundStyle(.primary)
+                            Text(sharing.isAwaitingAccessVerification(for: list.id)
+                                 ? "Saved copy · waiting to verify access"
+                                 : list.isAvailable ? "\(list.visibleTasks.filter { !$0.isDone }.count) unfinished · \(list.isOwner ? "Owned by you" : "Shared with you")" : "Access ended · saved copy")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                    }
+                    .padding().background(AppAppearance.taskSurface, in: RoundedRectangle(cornerRadius: 16))
+                }
+                .buttonStyle(.plain)
+            }
+            if let message = sharing.errorMessage {
+                Text(message).font(.caption).foregroundStyle(.secondary)
             }
         }
     }
@@ -166,7 +232,8 @@ struct CategoryListView: View {
     }
 
     private func category(for id: PersistentIdentifier) -> Category? {
-        categories.first { $0.persistentModelID == id }
+        // Published categories leave the private query while their destination is still open.
+        modelContext.model(for: id) as? Category
     }
 
     @ViewBuilder
@@ -241,6 +308,7 @@ struct CategoryListView: View {
         }
         .accessibilityLabel(category.name.isEmpty ? "Untitled category" : category.name)
         .accessibilityHint(isSelecting ? "Toggles selection for delete" : "Opens tasks for this category")
+        .accessibilityAddTraits(isSelecting && isSelected ? .isSelected : [])
     }
 
     private var selectionFooter: some View {
@@ -282,17 +350,17 @@ struct CategoryListView: View {
     }
 
     private func categoryCompletedCount(for category: Category) -> Int {
-        category.items.filter(\.isDone).count
+        category.taskItems.filter(\.isDone).count
     }
 
     private func categoryProgress(for category: Category) -> CGFloat {
-        let denominator = category.goal ?? category.items.count
+        let denominator = category.goal ?? category.taskItems.count
         guard denominator > 0 else { return 0 }
         return min(CGFloat(categoryCompletedCount(for: category)) / CGFloat(denominator), 1)
     }
 
     private func categoryProgressLabel(for category: Category) -> String {
-        let target = category.goal ?? max(category.items.count, 1)
+        let target = category.goal ?? max(category.taskItems.count, 1)
         return "\(categoryCompletedCount(for: category))/\(target)"
     }
 
@@ -328,9 +396,10 @@ struct CategoryListView: View {
 }
 
 private struct ProfileView: View {
+    @Environment(SharedListStore.self) private var sharing
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Category.order) private var categories: [Category]
+    @Query(filter: #Predicate<Category> { $0.sharedZoneName == nil }, sort: \Category.order) private var categories: [Category]
 
     @AppStorage("Key") private var storedDisplayName = ""
     @State private var showClearDataConfirmation = false
@@ -338,13 +407,14 @@ private struct ProfileView: View {
     @State private var persistenceErrorMessage: String?
 
     private var totalTaskCount: Int {
-        categories.reduce(0) { $0 + $1.items.count }
+        categories.reduce(0) { $0 + $1.taskItems.count }
+            + sharing.lists.filter(\.isAvailable).reduce(0) { $0 + $1.visibleTasks.count }
     }
 
     private var completedTaskCount: Int {
         categories.reduce(0) { partial, category in
-            partial + category.items.filter(\.isDone).count
-        }
+            partial + category.taskItems.filter(\.isDone).count
+        } + sharing.lists.filter(\.isAvailable).reduce(0) { $0 + $1.visibleTasks.filter(\.isDone).count }
     }
 
     var body: some View {
@@ -356,30 +426,34 @@ private struct ProfileView: View {
             }
 
             Section("Stats") {
-                LabeledContent("Categories", value: "\(categories.count)")
+                LabeledContent("Lists", value: "\(categories.count + sharing.lists.filter(\.isAvailable).count)")
                 LabeledContent("Tasks", value: "\(totalTaskCount)")
                 LabeledContent("Completed", value: "\(completedTaskCount)")
             }
 
+            Section("Shared lists") {
+                NavigationLink("Private backups") { PrivateListBackupsView() }
+            }
+
             Section("Danger Zone") {
-                Button("Clear all data", role: .destructive) {
+                Button("Clear private lists", role: .destructive) {
                     showClearDataConfirmation = true
                 }
                 .disabled(isClearingData)
-                .accessibilityHint("Deletes all categories and tasks")
+                .accessibilityHint("Deletes private categories and tasks")
             }
         }
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
         .confirmationDialog(
-            "Clear all app data?",
+            "Clear private lists?",
             isPresented: $showClearDataConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Clear all data", role: .destructive, action: clearAllData)
+            Button("Clear private lists", role: .destructive, action: clearAllData)
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This permanently deletes all categories and tasks.")
+            Text("This permanently deletes your private categories and tasks. Shared lists and their original backups are kept.")
         }
         .alert("Couldn’t save changes", isPresented: saveErrorIsPresented) {
             Button("OK", role: .cancel) { persistenceErrorMessage = nil }
@@ -432,4 +506,5 @@ private struct ProfileView: View {
     let container = try! ModelContainer(for: Category.self, Item.self, configurations: configuration)
     return CategoryListView()
         .modelContainer(container)
+        .environment(SharedListStore.shared)
 }

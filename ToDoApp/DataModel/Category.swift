@@ -10,15 +10,21 @@ import SwiftData
 final class Category {
     #Index<Category>([\.order], [\.sortRuleRawValue])
 
-    var name: String
-    var order: Int
+    var name: String = ""
+    var order: Int = 0
     var iconName: String = CategoryIcon.briefcase.rawValue
     var colorIndex: Int = CategoryColor.coral.rawValue
     var sortRuleRawValue: Int = CategorySortRule.manual.rawValue
     var goal: Int?
 
     @Relationship(deleteRule: .cascade, inverse: \Item.category)
-    var items: [Item]
+    var items: [Item]? = []
+
+    // The original private data is retained after publication as a recovery copy.
+    var sharedZoneName: String? = nil
+    var pendingShareZoneName: String? = nil
+
+    var taskItems: [Item] { items ?? [] }
 
     init(
         name: String = "",

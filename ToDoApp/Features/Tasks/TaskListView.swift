@@ -3,32 +3,50 @@
 //  ToDoApp
 //
 
+import CloudKit
 import SwiftData
 import SwiftUI
-import UIKit
 import WidgetKit
 
 struct TaskListView: View {
+    @Environment(SharedListStore.self) private var sharing
     @Bindable var category: Category
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.scenePhase) private var scenePhase
-    @Query(sort: \Category.order) private var categories: [Category]
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var filter: TaskListFilter = .all
     @State private var searchText = ""
     @State private var completedFeedbackTrigger = 0
     @State private var reopenedFeedbackTrigger = 0
     @State private var editingItem: Item?
-    @State private var orderedItemsCache: [Item] = []
-    @State private var isQuickAddExpanded = false
-    @State private var quickAddTitle = ""
-    @State private var quickAddPriority: TaskPriority = .none
-    @State private var quickAddCategory: Category?
-    @FocusState private var isQuickAddFocused: Bool
     @State private var persistenceErrorMessage: String?
+    @State private var cloudShare: CKShare?
+    @State private var showingCloudShare = false
+    @State private var isPreparingShare = false
+    @State private var sharingErrorMessage: String?
+
+    var body: some View {
+        Group {
+            if let zone = category.sharedZoneName,
+               let list = sharing.lists.first(where: { $0.isOwner && $0.zoneName == zone }) {
+                SharedTaskListView(listID: list.id)
+                    .sheet(isPresented: $showingCloudShare) {
+                        if let cloudShare {
+                            CloudSharingSheet(share: cloudShare, container: sharing.container, title: list.name,
+                                              onChange: { sharing.requestSync() }, onError: sharing.report)
+                        }
+                    }
+            } else {
+                privateListBody
+            }
+        }
+        .alert("Couldn’t share list", isPresented: sharingErrorIsPresented) {
+            Button("OK", role: .cancel) { sharingErrorMessage = nil }
+        } message: { Text(sharingErrorMessage ?? "Please try again.") }
+    }
 
     private var orderedItems: [Item] {
-        orderedItemsCache.sorted { lhs, rhs in
+        category.taskItems.sorted { lhs, rhs in
             if lhs.isDone != rhs.isDone {
                 return !lhs.isDone
             }
@@ -81,7 +99,7 @@ struct TaskListView: View {
         filter == .all && trimmedSearch.isEmpty && category.sortRule == .manual
     }
 
-    var body: some View {
+    private var privateListBody: some View {
         List {
             Section {
                 filterControl
@@ -153,18 +171,6 @@ struct TaskListView: View {
         }
         .sensoryFeedback(.success, trigger: completedFeedbackTrigger)
         .sensoryFeedback(.selection, trigger: reopenedFeedbackTrigger)
-        .onAppear(perform: reloadOrderedItems)
-        .onChange(of: scenePhase) {
-            if scenePhase == .active {
-                reloadOrderedItems()
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-            reloadOrderedItems()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .tasksDidChange)) { _ in
-            reloadOrderedItems()
-        }
         .alert("Couldn’t save changes", isPresented: saveErrorIsPresented) {
             Button("OK", role: .cancel) { persistenceErrorMessage = nil }
         } message: {
@@ -172,196 +178,45 @@ struct TaskListView: View {
         }
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
+                Button(isPreparingShare ? "Preparing…" : "Share List", systemImage: "person.badge.plus") {
+                    publishAndShare()
+                }
+                .disabled(isPreparingShare || sharing.isSyncing)
                 if canReorder {
                     EditButton()
                         .font(.subheadline.weight(.medium))
                 }
             }
         }
+        .disabled(isPreparingShare)
     }
 
-    private var quickAddBar: some View {
-        VStack(spacing: 0) {
-            if isQuickAddExpanded {
-                VStack(spacing: 12) {
-                    HStack(spacing: 10) {
-                        Image(systemName: "plus")
-                            .font(.body.weight(.bold))
-                            .foregroundStyle(AppAppearance.accent)
-                            .accessibilityHidden(true)
-
-                        TextField("What needs to be done?", text: $quickAddTitle)
-                            .focused($isQuickAddFocused)
-                            .submitLabel(.done)
-                            .onSubmit(addQuickTask)
-
-                        Button("Close", systemImage: "xmark") {
-                            closeQuickAdd()
-                        }
-                        .labelStyle(.iconOnly)
-                        .foregroundStyle(.secondary)
-                        .accessibilityLabel("Close quick add")
-                    }
-
-                    HStack(spacing: 8) {
-                        categoryMenu
-                        priorityMenu
-
-                        Spacer(minLength: 0)
-
-                        Button(action: addQuickTask) {
-                            Label("Add task", systemImage: "arrow.up")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 9)
-                                .background(AppAppearance.accent, in: Capsule())
-                        }
-                        .disabled(trimmedQuickAddTitle.isEmpty)
-                        .opacity(trimmedQuickAddTitle.isEmpty ? 0.5 : 1)
-                    }
-                }
-                .padding(14)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            } else {
-                Button {
-                    openQuickAdd()
-                } label: {
-                    HStack(spacing: 9) {
-                        Image(systemName: "plus")
-                            .font(.body.weight(.bold))
-                        Text("New task")
-                            .font(.subheadline.weight(.semibold))
-                        Spacer(minLength: 0)
-                        Image(systemName: "arrow.up.forward")
-                            .font(.caption.weight(.bold))
-                            .opacity(0.7)
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 17)
-                    .padding(.vertical, 13)
-                    .background(AppAppearance.accent, in: Capsule())
-                }
-                .accessibilityLabel("New task")
-                .accessibilityHint("Opens quick add")
-                .padding(.horizontal, 18)
-                .padding(.vertical, 10)
-                .transition(.scale(scale: 0.92).combined(with: .opacity))
+    private func publishAndShare() {
+        isPreparingShare = true
+        Task {
+            defer { isPreparingShare = false }
+            do {
+                let list = try await sharing.publish(category, context: modelContext)
+                category.sharedZoneName = list.zoneName
+                try PersistenceSupport.save(modelContext)
+                cloudShare = try await sharing.share(for: list.id)
+                showingCloudShare = true
+            } catch {
+                sharing.report(error)
+                sharingErrorMessage = sharing.errorMessage
             }
         }
-        .frame(maxWidth: 560)
-        .background(.ultraThinMaterial)
-        .overlay(alignment: .top) {
-            Rectangle()
-                .fill(AppAppearance.taskBorder)
-                .frame(height: 1)
-        }
-        .animation(.spring(response: 0.34, dampingFraction: 0.82), value: isQuickAddExpanded)
     }
 
-    private var categoryMenu: some View {
-        Menu {
-            ForEach(categories) { option in
-                Button {
-                    quickAddCategory = option
-                } label: {
-                    Label(
-                        option.name.isEmpty ? "Untitled" : option.name,
-                        systemImage: option.persistentModelID == selectedQuickAddCategory.persistentModelID ? "checkmark" : option.icon.rawValue
-                    )
-                }
-            }
-        } label: {
-            Label(selectedQuickAddCategory.name.isEmpty ? "Untitled" : selectedQuickAddCategory.name, systemImage: selectedQuickAddCategory.icon.rawValue)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-                .padding(.horizontal, 11)
-                .padding(.vertical, 8)
-                .background(AppAppearance.taskSurface, in: Capsule())
-                .overlay {
-                    Capsule().stroke(AppAppearance.taskBorder, lineWidth: 1)
-                }
-        }
-        .accessibilityLabel("Category")
-        .accessibilityValue(selectedQuickAddCategory.name.isEmpty ? "Untitled" : selectedQuickAddCategory.name)
-    }
-
-    private var priorityMenu: some View {
-        Menu {
-            ForEach(TaskPriority.allCases) { option in
-                Button {
-                    quickAddPriority = option
-                } label: {
-                    Label(option.title, systemImage: option.systemImage)
-                }
-            }
-        } label: {
-            Label(quickAddPriority == .none ? "Priority" : quickAddPriority.title, systemImage: quickAddPriority.systemImage)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(quickAddPriority == .none ? .secondary : quickAddPriority.tint)
-                .padding(.horizontal, 11)
-                .padding(.vertical, 8)
-                .background(AppAppearance.taskSurface, in: Capsule())
-                .overlay {
-                    Capsule().stroke(AppAppearance.taskBorder, lineWidth: 1)
-                }
-        }
-        .accessibilityLabel("Priority")
-        .accessibilityValue(Text(quickAddPriority.title))
-    }
-
-    private var trimmedQuickAddTitle: String {
-        quickAddTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private var selectedQuickAddCategory: Category {
-        quickAddCategory ?? category
-    }
-
-    private func openQuickAdd() {
-        quickAddCategory = category
-        withAnimation {
-            isQuickAddExpanded = true
-        }
-        Task { @MainActor in
-            isQuickAddFocused = true
-        }
-    }
-
-    private func closeQuickAdd() {
-        isQuickAddFocused = false
-        withAnimation {
-            isQuickAddExpanded = false
-        }
-    }
-
-    private func addQuickTask() {
-        guard !trimmedQuickAddTitle.isEmpty else { return }
-        let destination = selectedQuickAddCategory
-        let nextOrder = (destination.items.map(\.order).max() ?? -1) + 1
-        let item = Item(
-            title: trimmedQuickAddTitle,
-            isDone: false,
-            order: nextOrder,
-            priority: quickAddPriority,
-            category: destination
-        )
-        modelContext.insert(item)
-        saveChanges()
-        WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
-        quickAddTitle = ""
-        quickAddPriority = .none
-        quickAddCategory = category
-        reloadOrderedItems()
-        isQuickAddFocused = true
+    private var sharingErrorIsPresented: Binding<Bool> {
+        Binding(get: { sharingErrorMessage != nil }, set: { if !$0 { sharingErrorMessage = nil } })
     }
 
     private var filterControl: some View {
         HStack(spacing: 4) {
             ForEach(TaskListFilter.allCases) { option in
                 Button {
-                    withAnimation(.easeOut(duration: 0.2)) {
+                    withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
                         filter = option
                     }
                 } label: {
@@ -470,16 +325,17 @@ struct TaskListView: View {
                             .stroke(
                                 item.isDone ? AppAppearance.accent : AppAppearance.accent.opacity(0.48),
                                 lineWidth: 1.5
-                            )
+                        )
                         if item.isDone {
                             Image(systemName: "checkmark")
                                 .font(.caption.weight(.bold))
                                 .foregroundStyle(AppAppearance.accent)
-                                .transition(.scale.combined(with: .opacity))
+                                .transition(reduceMotion ? .opacity : .scale.combined(with: .opacity))
                         }
                     }
-                    .contentTransition(.symbolEffect(.replace))
+                    .contentTransition(reduceMotion ? .opacity : .symbolEffect(.replace))
                     .symbolEffect(.bounce, value: item.isDone)
+                    .symbolEffectsRemoved(reduceMotion)
                     .frame(width: 26, height: 26)
                     .frame(width: AppAppearance.minimumTapTarget, height: AppAppearance.minimumTapTarget)
                     .contentShape(Rectangle())
@@ -499,7 +355,7 @@ struct TaskListView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 4)
         .opacity(item.isDone ? 0.58 : 1)
-        .animation(.spring(response: 0.38, dampingFraction: 0.78), value: item.isDone)
+        .animation(reduceMotion ? nil : .spring(response: 0.38, dampingFraction: 0.78), value: item.isDone)
         .listRowSeparator(.hidden)
         .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
         .listRowBackground(Color.clear)
@@ -512,7 +368,7 @@ struct TaskListView: View {
 
     private func toggleDone(_ item: Item) {
         let wasDone = item.isDone
-        withAnimation(.spring(response: 0.38, dampingFraction: 0.72)) {
+        withAnimation(reduceMotion ? nil : .spring(response: 0.38, dampingFraction: 0.72)) {
             item.isDone.toggle()
         }
         if item.isDone, !wasDone {
@@ -522,14 +378,12 @@ struct TaskListView: View {
         }
         saveChanges()
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
-        reloadOrderedItems()
     }
 
     private func deleteItem(_ item: Item) {
         modelContext.delete(item)
         saveChanges()
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
-        reloadOrderedItems()
     }
 
     private func beginEditing(_ item: Item) {
@@ -544,13 +398,6 @@ struct TaskListView: View {
         }
         saveChanges()
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
-        reloadOrderedItems()
-    }
-
-    private func reloadOrderedItems() {
-        let descriptor = FetchDescriptor<Item>(sortBy: [SortDescriptor(\.order)])
-        let fetchedItems = (try? modelContext.fetch(descriptor)) ?? []
-        orderedItemsCache = fetchedItems.filter { $0.category?.persistentModelID == category.persistentModelID }
     }
 
     private var saveErrorIsPresented: Binding<Bool> {
@@ -578,4 +425,5 @@ struct TaskListView: View {
         TaskListView(category: category)
     }
     .modelContainer(container)
+    .environment(SharedListStore.shared)
 }

@@ -9,7 +9,7 @@ import SwiftUI
 struct CategoryReorderView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    @Query(sort: \Category.order) private var categories: [Category]
+    @Query(filter: #Predicate<Category> { $0.sharedZoneName == nil }, sort: \Category.order) private var categories: [Category]
 
     @State private var ordered: [Category] = []
     @State private var persistenceErrorMessage: String?
