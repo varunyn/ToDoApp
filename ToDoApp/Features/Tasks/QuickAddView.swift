@@ -15,7 +15,8 @@ struct QuickAddView: View {
     let defaultCategory: Category?
 
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Category.order) private var categories: [Category]
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Query(filter: #Predicate<Category> { $0.sharedZoneName == nil }, sort: \Category.order) private var categories: [Category]
 
     @State private var isExpanded = false
     @State private var title = ""
@@ -32,11 +33,21 @@ struct QuickAddView: View {
         title.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    private var expansionAnimation: Animation? {
+        reduceMotion
+            ? .easeInOut(duration: 0.15)
+            : .spring(response: 0.34, dampingFraction: 0.82)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             if isExpanded {
                 expandedQuickAdd
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .transition(
+                        reduceMotion
+                            ? .opacity
+                            : .move(edge: .bottom).combined(with: .opacity)
+                    )
             } else {
                 Button(action: open) {
                     Image(systemName: "plus")
@@ -51,7 +62,11 @@ struct QuickAddView: View {
                 .padding(.horizontal, 18)
                 .padding(.vertical, 10)
                 .frame(maxWidth: .infinity, alignment: .trailing)
-                .transition(.scale(scale: 0.88).combined(with: .opacity))
+                .transition(
+                    reduceMotion
+                        ? .opacity
+                        : .scale(scale: 0.88).combined(with: .opacity)
+                )
             }
         }
         .background(isExpanded ? AnyShapeStyle(.ultraThinMaterial) : AnyShapeStyle(.clear))
@@ -62,7 +77,7 @@ struct QuickAddView: View {
                     .frame(height: 1)
             }
         }
-        .animation(.spring(response: 0.34, dampingFraction: 0.82), value: isExpanded)
+        .animation(expansionAnimation, value: isExpanded)
         .alert("Couldn’t save changes", isPresented: saveErrorIsPresented) {
             Button("OK", role: .cancel) { persistenceErrorMessage = nil }
         } message: {
@@ -87,6 +102,8 @@ struct QuickAddView: View {
                     .labelStyle(.iconOnly)
                     .foregroundStyle(.secondary)
                     .accessibilityLabel("Close quick add")
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
 
             HStack(spacing: 8) {
@@ -100,6 +117,8 @@ struct QuickAddView: View {
                         .foregroundStyle(.white)
                         .frame(width: 36, height: 36)
                         .background(AppAppearance.accent, in: Circle())
+                        .frame(width: 44, height: 44)
+                        .contentShape(Circle())
                 }
                 .disabled(trimmedTitle.isEmpty || destinationCategory == nil)
                 .opacity(trimmedTitle.isEmpty || destinationCategory == nil ? 0.5 : 1)
@@ -166,18 +185,18 @@ struct QuickAddView: View {
 
     private func open() {
         selectedCategory = defaultCategory
-        withAnimation { isExpanded = true }
+        withAnimation(expansionAnimation) { isExpanded = true }
         Task { @MainActor in isTitleFocused = true }
     }
 
     private func close() {
         isTitleFocused = false
-        withAnimation { isExpanded = false }
+        withAnimation(expansionAnimation) { isExpanded = false }
     }
 
     private func addTask() {
         guard !trimmedTitle.isEmpty, let destinationCategory else { return }
-        let nextOrder = (destinationCategory.items.map(\.order).max() ?? -1) + 1
+        let nextOrder = (destinationCategory.taskItems.map(\.order).max() ?? -1) + 1
         let item = Item(
             title: trimmedTitle,
             isDone: false,

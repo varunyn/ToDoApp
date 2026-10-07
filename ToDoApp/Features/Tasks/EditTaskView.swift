@@ -11,10 +11,21 @@ struct EditTaskView: View {
     @Bindable var item: Item
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    @State private var draftTitle: String
+    @State private var draftIsDone: Bool
+    @State private var draftPriority: TaskPriority
     @State private var showDeleteConfirmation = false
     @State private var persistenceErrorMessage: String?
     @FocusState private var isTitleFocused: Bool
+
+    init(item: Item) {
+        self.item = item
+        _draftTitle = State(initialValue: item.title)
+        _draftIsDone = State(initialValue: item.isDone)
+        _draftPriority = State(initialValue: item.priority)
+    }
 
     var body: some View {
         ScrollView {
@@ -62,14 +73,14 @@ struct EditTaskView: View {
             ZStack {
                 Circle()
                     .fill(AppAppearance.accent.opacity(0.14))
-                Image(systemName: item.isDone ? "checkmark" : "pencil")
+                Image(systemName: draftIsDone ? "checkmark" : "pencil")
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(AppAppearance.accent)
             }
             .frame(width: 52, height: 52)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(item.isDone ? "Completed task" : "Shape your next step")
+                Text(draftIsDone ? "Completed task" : "Shape your next step")
                     .font(.title3.weight(.semibold))
                 Text(categoryLabel)
                     .font(.subheadline)
@@ -84,7 +95,7 @@ struct EditTaskView: View {
         VStack(alignment: .leading, spacing: 10) {
             sectionLabel("Task")
 
-            TextField("What needs to be done?", text: $item.title, axis: .vertical)
+            TextField("What needs to be done?", text: $draftTitle, axis: .vertical)
                 .focused($isTitleFocused)
                 .font(.title3.weight(.medium))
                 .lineLimit(2...5)
@@ -100,20 +111,20 @@ struct EditTaskView: View {
 
     private var statusCard: some View {
         Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                item.isDone.toggle()
+            withAnimation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.8)) {
+                draftIsDone.toggle()
             }
         } label: {
             HStack(spacing: 12) {
-                Image(systemName: item.isDone ? "checkmark.circle.fill" : "circle")
+                Image(systemName: draftIsDone ? "checkmark.circle.fill" : "circle")
                     .font(.title2)
-                    .foregroundStyle(item.isDone ? AppAppearance.accent : .secondary)
-                    .contentTransition(.symbolEffect(.replace))
+                    .foregroundStyle(draftIsDone ? AppAppearance.accent : .secondary)
+                    .contentTransition(reduceMotion ? .opacity : .symbolEffect(.replace))
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(item.isDone ? "Task completed" : "Mark as complete")
+                    Text(draftIsDone ? "Task completed" : "Mark as complete")
                         .font(.body.weight(.semibold))
-                    Text(item.isDone ? "Nice work — this one is done." : "Move it below unfinished tasks when finished.")
+                    Text(draftIsDone ? "Nice work — this one is done." : "Move it below unfinished tasks when finished.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -128,8 +139,8 @@ struct EditTaskView: View {
         }
         .buttonStyle(.plain)
         .cardSurface()
-        .accessibilityLabel(item.isDone ? "Mark task as not completed" : "Mark task as completed")
-        .sensoryFeedback(.selection, trigger: item.isDone)
+        .accessibilityLabel(draftIsDone ? "Mark task as not completed" : "Mark task as completed")
+        .sensoryFeedback(.selection, trigger: draftIsDone)
     }
 
     private var priorityCard: some View {
@@ -137,16 +148,16 @@ struct EditTaskView: View {
             HStack {
                 sectionLabel("Priority")
                 Spacer()
-                Label(item.priority.title, systemImage: item.priority.systemImage)
+                Label(draftPriority.title, systemImage: draftPriority.systemImage)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(item.priority.tint)
+                    .foregroundStyle(draftPriority.tint)
             }
 
             HStack(spacing: 8) {
                 ForEach(TaskPriority.allCases) { option in
                     Button {
-                        withAnimation(.easeOut(duration: 0.18)) {
-                            item.priority = option
+                        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
+                            draftPriority = option
                         }
                     } label: {
                         VStack(spacing: 7) {
@@ -156,21 +167,21 @@ struct EditTaskView: View {
                                 .font(.caption2.weight(.semibold))
                                 .lineLimit(1)
                         }
-                        .foregroundStyle(item.priority == option ? option.tint : .secondary)
+                        .foregroundStyle(draftPriority == option ? option.tint : .secondary)
                         .frame(maxWidth: .infinity)
                         .frame(minHeight: 58)
                         .background {
                             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(item.priority == option ? option.tint.opacity(0.13) : AppAppearance.taskSurface)
+                                .fill(draftPriority == option ? option.tint.opacity(0.13) : AppAppearance.taskSurface)
                         }
                         .overlay {
                             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .stroke(item.priority == option ? option.tint.opacity(0.38) : AppAppearance.taskBorder, lineWidth: 1)
+                                .stroke(draftPriority == option ? option.tint.opacity(0.38) : AppAppearance.taskBorder, lineWidth: 1)
                         }
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(option.title)
-                    .accessibilityAddTraits(item.priority == option ? .isSelected : [])
+                    .accessibilityAddTraits(draftPriority == option ? .isSelected : [])
                 }
             }
         }
@@ -192,7 +203,7 @@ struct EditTaskView: View {
     }
 
     private var trimmedTitle: String {
-        item.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        draftTitle.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private var categoryLabel: String {
@@ -210,13 +221,21 @@ struct EditTaskView: View {
 
     private func save() {
         guard !trimmedTitle.isEmpty else { return }
+        let originalTitle = item.title
+        let originalIsDone = item.isDone
+        let originalPriority = item.priority
         item.title = trimmedTitle
+        item.isDone = draftIsDone
+        item.priority = draftPriority
         do {
             try PersistenceSupport.save(modelContext)
             WidgetCenter.shared.reloadTimelines(ofKind: "TodoSummaryWidget")
             NotificationCenter.default.post(name: .tasksDidChange, object: nil)
             dismiss()
         } catch {
+            item.title = originalTitle
+            item.isDone = originalIsDone
+            item.priority = originalPriority
             persistenceErrorMessage = PersistenceSupport.userMessage(for: error)
         }
     }

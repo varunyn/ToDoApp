@@ -70,6 +70,8 @@ struct CategoryCustomizationView: View {
                                         Circle().stroke(.primary, lineWidth: 3).padding(-4)
                                     }
                                 }
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Color \(color.rawValue + 1)")
