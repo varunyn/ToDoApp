@@ -59,3 +59,11 @@ For running on a **physical device**, set your **Team** and **Bundle Identifier*
 
 - Persisted with **SwiftData** in the shared app-group store.
 - Optional **CloudKit sync** can be enabled for paid Apple Developer teams; personal development teams do not support the iCloud capability.
+
+**Shared lists**
+
+- Open a category and tap **Share List** to send a private iCloud invitation.
+- Invited people can add, edit, complete, and delete tasks. Changes are saved locally and sync while the app is open; completed tasks move below unfinished tasks.
+- Shared lists appear separately on the home screen and are included in the widget summary.
+- The original private list is retained under **Profile → Private backups**. Restoring it recovers the original snapshot, not subsequent shared edits.
+- Developer setup, production schema deployment, and live testing with two Apple accounts are required. See [iCloud sharing setup and validation](Documentation/iCloud-sharing.md).
